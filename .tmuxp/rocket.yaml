@@ -1,0 +1,47 @@
+session_name: RockIT
+start_directory: ~/Projects/RocketOM/web_frontend/
+#before_script: /home/danish/.tmuxp/env.sh
+windows:
+  - window_name: Production
+    layout: tiled
+    focus: true
+    panes:
+    - ssh productionDAT
+    - 
+    - 
+    - 
+  - window_name: Staging
+    layout: tiled
+    panes:
+    - ssh stagingDAT
+    - 
+    - 
+    - 
+  - window_name: Development
+    layout: tiled
+    panes:
+    - ssh developmentDAT
+    - 
+    - 
+    - 
+  - window_name: RabbitMQ
+    layout: tiled
+    panes:
+    - ssh rabbitmqDAT
+    - 
+    - 
+    - 
+  - window_name: DB
+    layout: tiled
+    panes:
+    - ssh dbDAT
+    - 
+    - 
+    - 
+  - window_name: Mirror
+    layout: tiled
+    panes:
+    - ssh mirrorDAT
+    - 
+    - 
+    - 
