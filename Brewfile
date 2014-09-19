@@ -33,7 +33,6 @@ install narwhal
 install vim --override-system-vi
 install homebrew/dupes/grep
 install homebrew/dupes/screen
-install homebrew/php/php55 --with-gmp
 
 # Install other useful binaries
 install ack
@@ -44,6 +43,8 @@ install nmap
 install node # This installs `npm` too using the recommended installation method
 install rename
 install tree
+install aria2
+install tmux
 
 # Remove outdated versions from the cellar
 cleanup
