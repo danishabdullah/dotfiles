@@ -12,3 +12,172 @@ Thumbs.db
 # Files that might appear on external disks
 .Spotlight-V100
 .Trashes
+
+node_modules
+dist
+.tmp
+.sass-cache
+app/bower_components
+
+*.py[cod]
+
+# C extensions
+*.so
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+__pycache__
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+
+#Git
+*.orig
+*#
+
+#Config
+sftp-config.json
+.project
+.pydevproject
+develop
+
+# Compiled python modules.
+*.pyc
+*.pyw
+
+# Setuptools distribution folder.
+/dist/
+
+# Python egg metadata, regenerated from source files by setuptools.
+/*.egg-info
+
+# pycharms data
+.idea/
+
+# data
+/data/
+
+# HDFs
+*.h5
+*.h5.*
+
+#ipython stuff
+*.ipynb*
+
+# excel and files
+*.csv
+*.xlsx
+
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+# Rope
+.ropeproject
+
+# Django stuff:
+*.log
+*.pot
+
+# Sphinx documentation
+docs/_build/
+
+
+lib-cov
+lcov.info
+*.seed
+*.log
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+
+node_modules/
+bower_components/
+*.log
+
+*.tar
+*.tar.*
+*.log
+*.log.*
+*.sig
+*.tgz*
+
+
+node_modules
+dist
+.tmp
+.sass-cache
+assets/bower_components
+
+.DS_Store
+npm-debug.log
+/preview/preview.zip
+
+*.db
+celerybeat-schedule
+
+# Don't keep compiled files
+*.js
+*.js.map
+*.map
+
+#ignore data files and server_out
+/server_out/*
+/app/static/data/
