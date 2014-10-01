@@ -101,6 +101,7 @@
 	# Make `git rebase` safer on macOS
 	# More info: <http://www.git-tower.com/blog/make-git-rebase-safe-on-osx/>
 	trustctime = false
+	editor = subl -n -w
 
 	# Prevent showing files whose names contain non-ASCII symbols as unversioned.
 	# http://michael-kuehnel.de/git/2014/11/21/git-mac-osx-and-german-umlaute.html
@@ -192,3 +193,9 @@
 [init]
 
 	templateDir = ~/.config/git/template/
+[user]
+	name = Danish Abdullah
+	email = dev@danishabdullah.com
+[filter "media"]
+	clean = git-media-clean %f
+	smudge = git-media-smudge %f
