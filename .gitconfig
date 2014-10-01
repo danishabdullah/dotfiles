@@ -76,6 +76,7 @@
 	# Make `git rebase` safer on OS X
 	# More info: <http://www.git-tower.com/blog/make-git-rebase-safe-on-osx/>
 	trustctime = false
+	editor = subl -n -w
 
 [color]
 
@@ -145,3 +146,9 @@
 [url "git://gist.github.com/"]
 
 	insteadOf = "gist:"
+[user]
+	name = Danish Abdullah
+	email = dev@danishabdullah.com
+[filter "media"]
+	clean = git-media-clean %f
+	smudge = git-media-smudge %f
