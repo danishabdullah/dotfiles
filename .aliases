@@ -151,3 +151,6 @@ command -v npm > /dev/null && alias npme="npm --registry http://registry.npmjs.e
 
 # When you just want to run the previous command with sudo
 alias ffs='eval "sudo $(fc -ln -1)"'
+
+# Update host file
+alias uphosts='sudo bash -c "cat /etc/hosts.backup > /etc/hosts & wget http://someonewhocares.org/hosts/hosts -O - >> /etc/hosts"'
