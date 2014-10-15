@@ -46,6 +46,7 @@ install tree
 install aria2
 install tmux
 install libffi
+install phantomjs
 
 # Remove outdated versions from the cellar
 cleanup
