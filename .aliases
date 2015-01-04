@@ -154,3 +154,13 @@ alias ffs='eval "sudo $(fc -ln -1)"'
 
 # Update host file
 alias uphosts='sudo bash -c "cat /etc/hosts.backup > /etc/hosts & wget http://someonewhocares.org/hosts/hosts -O - >> /etc/hosts"'
+
+# Update aliases
+aliase aliases=‘subl ~/.aliases’
+
+# Load profile again
+aliase load_profile=‘source ~/.bash_profile’
+
+# Update bash_profile
+aliase bash_profile=‘subl ~/.bash_profile’
+
