@@ -149,6 +149,7 @@
 [user]
 	name = Danish Abdullah
 	email = dev@danishabdullah.com
+
 [filter "media"]
 	clean = git-media-clean %f
 	smudge = git-media-smudge %f
