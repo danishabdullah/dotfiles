@@ -24,11 +24,6 @@ install bash-completion
 # Install wget with IRI support
 install wget --enable-iri
 
-# Install RingoJS and Narwhal
-# Note that the order in which these are installed is important; see http://git.io/brew-narwhal-ringo.
-install ringojs
-install narwhal
-
 # Install more recent versions of some OS X tools
 install vim --override-system-vi
 install homebrew/dupes/grep
@@ -46,6 +41,14 @@ install tree
 install aria2
 install tmux
 install libffi
+install git-flow
+install the_silver_searcher
+install httpie
+install pypy
+install fail2ban
+install youtube-dl
+install redis
+install elasticsearch
 
 # Remove outdated versions from the cellar
 cleanup
