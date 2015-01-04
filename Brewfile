@@ -49,6 +49,7 @@ install fail2ban
 install youtube-dl
 install redis
 install elasticsearch
+install phantomjs
 
 # Remove outdated versions from the cellar
 cleanup
