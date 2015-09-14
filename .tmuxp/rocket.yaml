@@ -1,5 +1,5 @@
 session_name: RockIT
-start_directory: ~/Projects/RocketOM/web_frontend/
+start_directory: ~/OneDrive/code/Rocket/web_frontend
 before_script: /Users/danish/.tmuxp/env.sh
 windows:
   - window_name: Production
