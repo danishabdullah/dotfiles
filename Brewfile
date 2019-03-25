@@ -31,7 +31,6 @@ install homebrew/dupes/screen
 
 # Install other useful binaries
 install ack
-install bfg
 install git
 install imagemagick --with-webp
 install nmap
@@ -47,9 +46,6 @@ install httpie
 install pypy
 install fail2ban
 install youtube-dl
-install redis
-install elasticsearch
-install phantomjs
 
 # Remove outdated versions from the cellar
 cleanup
