@@ -48,3 +48,4 @@ complete -W "NSGlobalDomain" defaults;
 complete -o "nospace" -W "Contacts Calendar Dock Finder Mail Safari iTunes SystemUIServer Terminal Twitter Skype" killall;
 
 export PYTHONIOENCODING=utf8
+eval "$(rbenv init -)"
