@@ -43,8 +43,6 @@ brew install vim --with-override-system-vi
 brew install grep
 brew install openssh
 brew install screen
-brew install php
-brew install gmp
 
 # Install font tools.
 brew tap bramstein/webfonttools
