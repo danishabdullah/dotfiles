@@ -52,3 +52,6 @@ complete -o "nospace" -W "Contacts Calendar Dock Finder Mail Safari iTunes Syste
 # Python and Anaconda related
 export PATH=~/anaconda/bin:$PATH
 export PYTHONIOENCODING=utf8
+
+# rbenv
+eval "$(rbenv init -)"
