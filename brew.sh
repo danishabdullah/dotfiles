@@ -78,7 +78,7 @@ brew install xz
 
 # Install other useful binaries.
 brew install ack
-#brew install exiv2 
+#brew install exiv2
 brew install git
 brew install git-lfs
 brew install gs
@@ -94,6 +94,63 @@ brew install ssh-copy-id
 brew install tree
 brew install vbindiff
 brew install zopfli
+
+# more useful things
+brew install aria2
+brew install awscli
+brew install docker
+brew install gcc
+brew install git
+brew install git-flow
+brew install httpie
+brew install hugo
+brew install ncdu
+brew install node@12
+brew install packer
+brew install rbenv
+brew install terraform
+brew install youtube-dl
+
+
+# Casks
+
+# brew cask install amazon-music
+# brew cask install android-studio
+# brew cask install colloquy
+brew cask install docker
+# brew cask install epic-games
+brew cask install figma
+brew cask install firefox
+brew cask install flutter
+# brew cask install freesmug-chromium
+brew cask install google-chrome
+# brew cask install insomnia
+brew cask install iterm2
+# brew cask install linkliar
+brew cask install microsoft-edge
+brew cask install microsoft-teams
+brew cask install miniconda
+brew cask install onedrive
+brew cask install origin
+brew cask install postgres
+brew cask install postman
+# brew cask install private-internet-access
+brew cask install pycharm-ce
+brew cask install qbittorrent
+brew cask install signal
+brew cask install skype
+brew cask install slack
+brew cask install spotify
+brew cask install steam
+brew cask install sublime-text
+brew cask install telegram
+brew cask install transmission
+# brew cask install vagrant
+# brew cask install virtualbox
+brew cask install visual-studio-code
+brew cask install vlc
+brew cask install vyprvpn
+brew cask install whatsapp
 
 # Remove outdated versions from the cellar.
 brew cleanup
