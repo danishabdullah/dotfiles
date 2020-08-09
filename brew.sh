@@ -143,6 +143,7 @@ brew cask install skype
 brew cask install slack
 brew cask install spotify
 brew cask install steam
+brew cask install sublime-merge
 brew cask install sublime-text
 brew cask install telegram
 brew cask install transmission
