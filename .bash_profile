@@ -50,7 +50,7 @@ complete -W "NSGlobalDomain" defaults;
 complete -o "nospace" -W "Contacts Calendar Dock Finder Mail Safari iTunes SystemUIServer Terminal Twitter Skype" killall;
 
 # Python and Anaconda related
-export PATH=~/miniconda/bin:$PATH
+export PATH=/usr/local/Caskroom/miniconda/base/bin:$PATH
 export PYTHONIOENCODING=utf8
 
 # rbenv
