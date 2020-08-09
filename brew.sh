@@ -137,6 +137,7 @@ brew cask install postman
 # brew cask install private-internet-access
 brew cask install pycharm-ce
 brew cask install qbittorrent
+brew cask install sequel-pro
 brew cask install signal
 brew cask install skype
 brew cask install slack
@@ -148,6 +149,7 @@ brew cask install transmission
 # brew cask install vagrant
 # brew cask install virtualbox
 brew cask install visual-studio-code
+brewe cask install valentina-studio
 brew cask install vlc
 brew cask install vyprvpn
 brew cask install whatsapp
