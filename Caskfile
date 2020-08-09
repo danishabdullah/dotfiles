@@ -1,0 +1,28 @@
+# Install native apps
+# Usage: `brew bundle Caskfile`
+
+install caskroom/cask/brew-cask
+tap caskroom/versions
+
+cask install dropbox 2> /dev/null
+cask install chromium 2> /dev/null
+cask install iterm2 2> /dev/null
+cask install the-unarchiver 2> /dev/null
+cask install transmission 2> /dev/null
+cask install virtualbox 2> /dev/null
+cask install vlc 2> /dev/null
+cask install skype 2> /dev/null
+cask install sublime-text3 2> /dev/null
+cask install pycharm 2> /dev/null
+cask install utorrent 2> /dev/null
+cask install airmail 2> /dev/null
+cask install airmail-amt 2> /dev/null
+cask install colloquy 2> /dev/null
+cask install private-internet-access 2> /dev/null
+cask install mplayerx 2> /dev/null
+cask install postgres 2> /dev/null
+cask install spectacle 2> /dev/null
+cask install steam 2> /dev/null
+cask install slack 2> /dev/null
+cask install shady 2> /dev/null
+cask install sequel-pro 2> /dev/null

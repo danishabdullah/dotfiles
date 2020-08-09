@@ -144,6 +144,24 @@ alias afk="/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resource
 # Reload the shell (i.e. invoke as a login shell)
 alias reload="exec ${SHELL} -l"
 
+# Faster npm for Europeans
+command -v npm > /dev/null && alias npme="npm --registry http://registry.npmjs.eu/"
+
+# When you just want to run the previous command with sudo
+alias ffs='eval "sudo $(fc -ln -1)"'
+
+# Update host file
+alias uphosts='sudo bash -c "cat /etc/hosts.backup > /etc/hosts & wget http://someonewhocares.org/hosts/hosts -O - >> /etc/hosts"'
+
+# Update aliases
+alias aliases="subl ~/.aliases"
+
+# Load profile again
+alias load_profile="source ~/.bash_profile"
+
+# Update bash_profile
+alias bash_profile="subl ~/.bash_profile"
+
 # Print each PATH entry on a separate line
 alias path='echo -e ${PATH//:/\\n}'
 # Faster npm for Europeans
