@@ -1,51 +1,111 @@
-# Install command-line tools using Homebrew
-# Usage: `brew bundle Brewfile`
-
-# Make sure we’re using the latest Homebrew
-update
-
-# Upgrade any already-installed formulae
-upgrade
-
-# Install GNU core utilities (those that come with OS X are outdated)
-# Don’t forget to add `$(brew --prefix coreutils)/libexec/gnubin` to `$PATH`.
-install coreutils
-# Install some other useful utilities like `sponge`
-install moreutils
-# Install GNU `find`, `locate`, `updatedb`, and `xargs`, `g`-prefixed
-install findutils
-# Install GNU `sed`, overwriting the built-in `sed`
-install gnu-sed --default-names
-# Install Bash 4
-# Note: don’t forget to add `/usr/local/bin/bash` to `/etc/shells` before running `chsh`.
-install bash
-install bash-completion
-
-# Install wget with IRI support
-install wget --enable-iri
-
-# Install more recent versions of some OS X tools
-install vim --override-system-vi
-install homebrew/dupes/grep
-install homebrew/dupes/screen
-
-# Install other useful binaries
-install ack
-install git
-install imagemagick --with-webp
-install nmap
-install node # This installs `npm` too using the recommended installation method
-install rename
-install tree
-install aria2
-install tmux
-install libffi
-install git-flow
-install the_silver_searcher
-install httpie
-install pypy
-install fail2ban
-install youtube-dl
-
-# Remove outdated versions from the cellar
-cleanup
+tap "bramstein/webfonttools"
+tap "homebrew/bundle"
+tap "homebrew/cask"
+tap "homebrew/cask-versions"
+tap "homebrew/core"
+brew "ack"
+brew "aircrack-ng"
+brew "aria2"
+brew "xz"
+brew "awscli"
+brew "bash"
+brew "bash-completion@2"
+brew "bfg"
+brew "binutils"
+brew "p7zip"
+brew "binwalk"
+brew "cifer"
+brew "coreutils"
+brew "dex2jar"
+brew "dns2tcp"
+brew "docker", link: false
+brew "fcrackzip"
+brew "ffmpeg"
+brew "findutils"
+brew "foremost"
+brew "gcc"
+brew "ghostscript"
+brew "git"
+brew "git-flow"
+brew "git-lfs"
+brew "gnupg", link: false
+brew "grep"
+brew "hashpump"
+brew "htop"
+brew "httpie"
+brew "hugo"
+brew "mysql-client"
+brew "hydra"
+brew "john"
+brew "knock"
+brew "lua"
+brew "lynx"
+brew "moreutils"
+brew "ncdu"
+brew "netpbm"
+brew "nmap"
+brew "node@12"
+brew "openssh", link: false
+brew "packer"
+brew "pigz"
+brew "pngcheck"
+brew "pv"
+brew "rbenv"
+brew "rename"
+brew "rlwrap"
+brew "screen"
+brew "socat"
+brew "sqlmap"
+brew "ssh-copy-id"
+brew "tcpflow"
+brew "tcpreplay"
+brew "tcptrace"
+brew "terraform"
+brew "tree"
+brew "ucspi-tcp"
+brew "vbindiff"
+brew "wget"
+brew "woff2"
+brew "xpdf"
+brew "youtube-dl"
+brew "zopfli"
+brew "bramstein/webfonttools/sfnt2woff"
+brew "bramstein/webfonttools/sfnt2woff-zopfli"
+cask "brave-browser"
+cask "discord"
+cask "docker"
+cask "epic-games"
+cask "figma"
+cask "firefox"
+cask "google-chrome"
+cask "gpg-suite"
+cask "iterm2"
+cask "microsoft-edge"
+cask "microsoft-teams"
+cask "miniconda"
+cask "mysqlworkbench"
+cask "onedrive"
+cask "origin"
+cask "postgres"
+cask "postman"
+cask "pycharm-ce"
+cask "qbittorrent"
+cask "sequel-pro"
+cask "signal"
+cask "skype"
+cask "slack"
+cask "spotify"
+cask "steam"
+cask "sublime-merge"
+cask "sublime-text"
+cask "telegram"
+cask "tidal"
+cask "tor-browser"
+cask "transmission"
+cask "valentina-studio"
+cask "visual-studio-code"
+cask "vlc"
+cask "vyprvpn"
+cask "whatsapp"
+cask "zoom"
+cask "zoomus"
