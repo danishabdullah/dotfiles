@@ -2,9 +2,7 @@ Dotfiles for macOS, focused on a clean Bash-based workflow with Homebrew and sen
 
 ## Quick start
 - Install Homebrew first, then install the latest Bash before running anything else: `brew install bash` (or `brew update && brew install bash` if Homebrew is already present).
-- Apply the Homebrew bundle: `./brew.sh` (uses `./Brewfile` and cleans up extras).
-- Dry-run the dotfile sync to see what would change: `./bootstrap.sh --dry-run`. When it looks good, run `./bootstrap.sh` (add `--backup` to keep overwritten files).
-- (Optional) Apply macOS defaults: `./.macos`.
+- Run `./bootstrap.sh` — this will run `./brew.sh` first (skip with `--no-brew`; `--dry-run` skips brew too) and then sync dotfiles. Use `--backup <dir>` to keep overwritten files, or `--dry-run` to preview. Add `--macos` to apply macOS defaults at the end (will prompt for sudo).
 
 ## Scripts
 - `bootstrap.sh` – rsyncs the repo into `$HOME` with excludes. Supports `--dry-run`, `--force`, and `--backup <dir>`.
