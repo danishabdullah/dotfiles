@@ -120,7 +120,12 @@ defaults write com.apple.dock autohide-delay -float 0                           
 defaults write com.apple.dock autohide-time-modifier -float 0
 defaults write com.apple.dock showhidden -bool true
 defaults write com.apple.dock show-recents -bool false
-find "${HOME}/Library/Application Support/Dock" -name "*-*.db" -maxdepth 1 -delete
+DOCK_DIR="${HOME}/Library/Application Support/Dock"
+if [ -d "$DOCK_DIR" ]; then
+  find "$DOCK_DIR" -maxdepth 1 -name "*-*.db" -delete
+else
+  log "Dock DB path not found at '$DOCK_DIR' (skipping DB cleanup)"
+fi
 # Hot corners: 0 none, 2 Mission Control, 3 App windows, 4 Desktop, 5 Start screensaver,
 # 6 Disable screensaver, 10 Sleep display, 11 Launchpad, 12 Notification Center, 13 Lock Screen.
 # Example: bottom-left = start screensaver (set to 0 to disable)
