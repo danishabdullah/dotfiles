@@ -80,7 +80,7 @@ brew "zopfli"
 # Apps (casks)
 # -------------------------------------------------------------------
 # Browsers
-cask "chromium"
+cask "google-chrome"
 cask "firefox"
 cask "tor-browser"
 
@@ -97,8 +97,7 @@ cask "gcloud-cli"
 cask "gpg-suite"
 cask "pgadmin4"
 cask "postman"
-cask "postgres"
-cask "google-cloud-sdk" # ships its own launcher
+# cask "postgres"
 
 # Productivity / utilities
 cask "bitwarden"
