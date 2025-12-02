@@ -136,6 +136,10 @@ if [[ -d "$HOME/Library/pnpm" ]]; then
   export PNPM_HOME="$HOME/Library/pnpm"
   export PATH="$PNPM_HOME:$PATH"
 fi
+# Rust (cargo)
+if [[ -d "$HOME/.cargo/bin" ]]; then
+  export PATH="$HOME/.cargo/bin:$PATH"
+fi
 # Java (OpenJDK)
 if [[ -d "/opt/homebrew/opt/openjdk" ]]; then
   export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
