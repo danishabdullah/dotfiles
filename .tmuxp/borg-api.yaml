@@ -5,7 +5,7 @@ windows:
     layout: tiled
     focus: true
     panes:
-    - ssh deploy@api.graph.one
+    - ssh api-deploy
     - ssh db1-danish
     - . /Users/danish/.tmuxp/startup.sh
     - . /Users/danish/.tmuxp/startup.sh
