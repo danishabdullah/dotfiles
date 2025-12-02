@@ -1,118 +1,252 @@
 #!/usr/bin/env bash
+# =============================================================================
+# ~/.bash_prompt — Solarized, width-safe, fast
+# Features:
+#   • Strong hostname contrast (bold Solarized Yellow by default).
+#   • Git status: single porcelain scan per directory, cached.
+#   • Python (uv-first): shows active $VIRTUAL_ENV or project-local .venv.
+#   • Node: shown only inside Node projects (package.json/lockfiles present).
+#   • Docker: shown only when DOCKER_CONTEXT is set and not "default".
+#   • Slow-command timer and nonzero exit code indicator.
+#   • Truecolor with 256-color fallback; all nonprinting sequences wrapped.
+# Configuration via env before sourcing:
+#   PROMPT_ICON_MODE=ascii|nerdfont|emoji   (default: ascii)
+#   PROMPT_SLOW_THRESHOLD=<int seconds>     (default: 2)
+#   PROMPT_SHOW_NODE=1|0                    (default: 1)
+#   PROMPT_SHOW_DOCKER=1|0                  (default: 1)
+#   FORCE_TRUECOLOR=1|0                     (default: autodetect)
+#   HOSTNAME_ACCENT=ORANGE|YELLOW|GREEN|CYAN|BLUE|VIOLET|RED|WHITE  (default: YELLOW)
+# =============================================================================
 
-# Shell prompt based on the Solarized Dark theme.
-# Screenshot: http://i.imgur.com/EkEtphC.png
-# Heavily inspired by @necolas’s prompt: https://github.com/necolas/dotfiles
-# iTerm → Profiles → Text → use 13pt Monaco with 1.1 vertical spacing.
+: "${PROMPT_ICON_MODE:=emoji}"
+: "${PROMPT_SLOW_THRESHOLD:=2}"
+: "${PROMPT_SHOW_NODE:=1}"
+: "${PROMPT_SHOW_DOCKER:=1}"
+: "${FORCE_TRUECOLOR:=}"
+: "${HOSTNAME_ACCENT:=YELLOW}"
 
-if [[ $COLORTERM = gnome-* && $TERM = xterm ]] && infocmp gnome-256color >/dev/null 2>&1; then
-	export TERM='gnome-256color';
-elif infocmp xterm-256color >/dev/null 2>&1; then
-	export TERM='xterm-256color';
-fi;
+# ---------- utilities ----------
+__np() { printf '\[%s\]' "$1"; }       # wrap nonprinting escapes
+__title() { printf '\033]0;%s\007' "${PWD##*/}"; }
 
-prompt_git() {
-	local s='';
-	local branchName='';
-
-	# Check if the current directory is in a Git repository.
-	git rev-parse --is-inside-work-tree &>/dev/null || return;
-
-	# Check for what branch we’re on.
-	# Get the short symbolic ref. If HEAD isn’t a symbolic ref, get a
-	# tracking remote branch or tag. Otherwise, get the
-	# short SHA for the latest commit, or give up.
-	branchName="$(git symbolic-ref --quiet --short HEAD 2> /dev/null || \
-		git describe --all --exact-match HEAD 2> /dev/null || \
-		git rev-parse --short HEAD 2> /dev/null || \
-		echo '(unknown)')";
-
-	# Early exit for Chromium & Blink repo, as the dirty check takes too long.
-	# Thanks, @paulirish!
-	# https://github.com/paulirish/dotfiles/blob/dd33151f/.bash_prompt#L110-L123
-	repoUrl="$(git config --get remote.origin.url)";
-	if grep -q 'chromium/src.git' <<< "${repoUrl}"; then
-		s+='*';
-	else
-		# Check for uncommitted changes in the index.
-		if ! $(git diff --quiet --ignore-submodules --cached); then
-			s+='+';
-		fi;
-		# Check for unstaged changes.
-		if ! $(git diff-files --quiet --ignore-submodules --); then
-			s+='!';
-		fi;
-		# Check for untracked files.
-		if [ -n "$(git ls-files --others --exclude-standard)" ]; then
-			s+='?';
-		fi;
-		# Check for stashed files.
-		if $(git rev-parse --verify refs/stash &>/dev/null); then
-			s+='$';
-		fi;
-	fi;
-
-	[ -n "${s}" ] && s=" [${s}]";
-
-	echo -e "${1}${branchName}${2}${s}";
+__support_truecolor() {
+  if [ "$FORCE_TRUECOLOR" = "1" ]; then return 0; fi
+  if [ "$FORCE_TRUECOLOR" = "0" ]; then return 1; fi
+  if [ "$COLORTERM" = "truecolor" ] || [ "$COLORTERM" = "24bit" ]; then return 0; fi
+  return 1
 }
 
-if tput setaf 1 &> /dev/null; then
-	tput sgr0; # reset colors
-	bold=$(tput bold);
-	reset=$(tput sgr0);
-	# Solarized colors, taken from http://git.io/solarized-colors.
-	black=$(tput setaf 0);
-	blue=$(tput setaf 33);
-	cyan=$(tput setaf 37);
-	green=$(tput setaf 64);
-	orange=$(tput setaf 166);
-	purple=$(tput setaf 125);
-	red=$(tput setaf 124);
-	violet=$(tput setaf 61);
-	white=$(tput setaf 15);
-	yellow=$(tput setaf 136);
+# ---------- colors ----------
+if __support_truecolor; then
+  __FG() { __np "$(printf '\e[38;2;%d;%d;%dm' "$1" "$2" "$3")"; }
+  __BOLD=$( __np $'\e[1m' ); __RESET=$( __np $'\e[0m' )
+  ORANGE=$(__FG 203  75  22); YELLOW=$(__FG 181 137   0)
+  GREEN=$(__FG 133 153   0); CYAN=$(__FG  42 161 152)
+  BLUE=$(__FG  38 139 210); VIOLET=$(__FG 108 113 196)
+  RED=$(__FG 220  50  47);  WHITE=$(__FG 253 246 227)
 else
-	bold='';
-	reset="\e[0m";
-	black="\e[1;30m";
-	blue="\e[1;34m";
-	cyan="\e[1;36m";
-	green="\e[1;32m";
-	orange="\e[1;33m";
-	purple="\e[1;35m";
-	red="\e[1;31m";
-	violet="\e[1;35m";
-	white="\e[1;37m";
-	yellow="\e[1;33m";
-fi;
+  if tput setaf 1 >/dev/null 2>&1; then
+    __BOLD=$( __np "$(tput bold)" ); __RESET=$( __np "$(tput sgr0)" )
+    _sf() { __np "$(tput setaf "$1")"; }
+    ORANGE=$(_sf 166); YELLOW=$(_sf 136); GREEN=$(_sf 64);  CYAN=$(_sf 37)
+    BLUE=$(_sf 33);    VIOLET=$(_sf 61);  RED=$(_sf 124);   WHITE=$(_sf 15)
+  else
+    __BOLD=$( __np $'\e[1m' ); __RESET=$( __np $'\e[0m' )
+    ORANGE=$( __np $'\e[33m' ); YELLOW=$( __np $'\e[33m' ); GREEN=$( __np $'\e[32m' )
+    CYAN=$( __np $'\e[36m' );  BLUE=$( __np $'\e[34m' );   VIOLET=$( __np $'\e[35m' )
+    RED=$( __np $'\e[31m' );   WHITE=$( __np $'\e[37m' )
+  fi
+fi
 
-# Highlight the user name when logged in as root.
-if [[ "${USER}" == "root" ]]; then
-	userStyle="${red}";
+# user/host styles
+if [ "$USER" = "root" ]; then USER_STYLE=$RED; else USER_STYLE=$ORANGE; fi
+# map HOSTNAME_ACCENT token to color var
+case "$HOSTNAME_ACCENT" in
+  ORANGE) HOST_ACCENT="$ORANGE" ;;
+  YELLOW) HOST_ACCENT="$YELLOW" ;;
+  GREEN)  HOST_ACCENT="$GREEN" ;;
+  CYAN)   HOST_ACCENT="$CYAN" ;;
+  BLUE)   HOST_ACCENT="$BLUE" ;;
+  VIOLET) HOST_ACCENT="$VIOLET" ;;
+  RED)    HOST_ACCENT="$RED" ;;
+  WHITE)  HOST_ACCENT="$WHITE" ;;
+  *)      HOST_ACCENT="$YELLOW" ;;
+esac
+if [ -n "$SSH_TTY" ]; then
+  HOST_STYLE="${__BOLD}${RED}"
 else
-	userStyle="${orange}";
-fi;
+  HOST_STYLE="${__BOLD}${HOST_ACCENT}"
+fi
 
-# Highlight the hostname when connected via SSH.
-if [[ "${SSH_TTY}" ]]; then
-	hostStyle="${bold}${red}";
-else
-	hostStyle="${yellow}";
-fi;
+# ---------- icons (single-width in ascii mode) ----------
+case "$PROMPT_ICON_MODE" in
+  ascii)    ICON_PY='py'; ICON_NODE='node'; ICON_DOCKER='dk'; ICON_TIME='time'; ICON_ERR='x' ;;
+  nerdfont) ICON_PY=$''; ICON_NODE=$''; ICON_DOCKER=$''; ICON_TIME=$''; ICON_ERR=$'' ;;
+  emoji)    ICON_PY='🐍'; ICON_NODE='⬢'; ICON_DOCKER='🐳'; ICON_TIME='⏱'; ICON_ERR='✘' ;;
+  *)        ICON_PY='py'; ICON_NODE='node'; ICON_DOCKER='dk'; ICON_TIME='time'; ICON_ERR='x' ;;
+esac
 
-# Set the terminal title and prompt.
-PS1="\[\033]0;\W\007\]"; # working directory base name
-PS1+="\[${bold}\]\n"; # newline
-PS1+="\[${userStyle}\]\u"; # username
-PS1+="\[${white}\] at ";
-PS1+="\[${hostStyle}\]\h"; # host
-PS1+="\[${white}\] in ";
-PS1+="\[${green}\]\w"; # working directory full path
-PS1+="\$(prompt_git \"\[${white}\] on \[${violet}\]\" \"\[${blue}\]\")"; # Git repository details
-PS1+="\n";
-PS1+="\[${white}\]\$ \[${reset}\]"; # `$` (and reset color)
-export PS1;
+# ---------- timing + status ----------
+trap '__prompt_timer_start=$SECONDS' DEBUG
+__status_time() {
+  local code=$1 out=""
+  if [ "$code" -ne 0 ]; then
+    out="$out ${RED}${ICON_ERR}${code}${__RESET}"
+  fi
+  if [ -n "${__prompt_timer_start:-}" ]; then
+    local dt=$(( SECONDS - __prompt_timer_start ))
+    if [ "$dt" -gt "$PROMPT_SLOW_THRESHOLD" ]; then
+      out="$out ${YELLOW}${ICON_TIME} ${dt}s${__RESET}"
+    fi
+  fi
+  printf '%s' "$out"
+}
 
-PS2="\[${yellow}\]→ \[${reset}\]";
-export PS2;
+# ---------- Python (uv-first, cached) ----------
+__PY_PWD=""; __PY_SEG=""
+__py_seg() {
+  if [ "$PWD" = "$__PY_PWD" ] && [ -n "$__PY_SEG" ]; then printf '%s' "$__PY_SEG"; return; fi
+  __PY_PWD=$PWD; __PY_SEG=""
+  local name=""
+  if [ -n "$VIRTUAL_ENV" ]; then
+    name="${VIRTUAL_ENV##*/}"
+  elif [ -d ".venv" ]; then
+    name=".venv"
+  fi
+  if [ -n "$name" ]; then __PY_SEG=" ${VIOLET}${ICON_PY} ${name}${__RESET}"; fi
+  printf '%s' "$__PY_SEG"
+}
+
+# ---------- Node (project-gated, manager-aware, zero processes) ----------
+__NODE_PWD=""; __NODE_SEG=""
+__NODE_MGR=""; __NODE_ROOT=""
+
+# Detect manager for a given directory; sets __NODE_MGR and returns 0 if found
+__node_detect_manager_from_dir() {
+  local d="$1"
+  __NODE_MGR=""
+
+  # 1) package.json: "packageManager": "pnpm@…" | "yarn@…" | "npm@…"
+  if [ -f "$d/package.json" ]; then
+    if grep -Eqo '"packageManager"[[:space:]]*:[[:space:]]*"(pnpm|yarn|npm)@' "$d/package.json"; then
+      local pm
+      pm="$(grep -Eo '"packageManager"[[:space:]]*:[[:space:]]*"(pnpm|yarn|npm)@' "$d/package.json" \
+            | head -n1 | sed -E 's/.*"(pnpm|yarn|npm)@/\1/')"
+      case "$pm" in
+        pnpm|yarn|npm) __NODE_MGR="$pm"; return 0 ;;
+      esac
+    fi
+  fi
+
+  # 2) lockfiles
+  if   [ -f "$d/pnpm-lock.yaml" ] || [ -f "$d/pnpm-workspace.yaml" ]; then __NODE_MGR="pnpm"; return 0
+  elif [ -f "$d/yarn.lock" ]; then __NODE_MGR="yarn"; return 0
+  elif [ -f "$d/package-lock.json" ]; then __NODE_MGR="npm"; return 0
+  fi
+
+  return 1
+}
+
+# Walk upwards; if a Node project is found, set __NODE_ROOT and __NODE_MGR
+__node_find_project() {
+  local d="$PWD" parent
+  __NODE_ROOT=""; __NODE_MGR=""
+  while :; do
+    if __node_detect_manager_from_dir "$d"; then
+      __NODE_ROOT="$d"
+      return 0
+    fi
+    [ "$d" = "/" ] && return 1
+    parent="${d%/*}"; [ -z "$parent" ] || [ "$parent" = "$d" ] && parent="/"
+    d="$parent"
+  done
+}
+
+__node_seg() {
+  [ "$PROMPT_SHOW_NODE" = "1" ] || return 0
+  if [ "$PWD" = "$__NODE_PWD" ] && [ -n "$__NODE_SEG" ]; then
+    printf '%s' "$__NODE_SEG"; return
+  fi
+  __NODE_PWD=$PWD; __NODE_SEG=""
+
+  if ! __node_find_project; then
+    printf ''; return
+  fi
+
+  case "$__NODE_MGR" in
+    yarn) __NODE_SEG=" ${CYAN}${ICON_NODE} yarn${__RESET}" ;;
+    pnpm) __NODE_SEG=" ${CYAN}${ICON_NODE} pnpm${__RESET}" ;;
+    npm)  __NODE_SEG=" ${CYAN}${ICON_NODE} npm${__RESET}"  ;;
+    *)    __NODE_SEG="" ;;
+  esac
+
+  printf '%s' "$__NODE_SEG"
+}
+
+# ---------- Docker (context-gated) ----------
+__docker_seg() {
+  if [ "$PROMPT_SHOW_DOCKER" = "1" ] && [ -n "$DOCKER_CONTEXT" ] && [ "$DOCKER_CONTEXT" != "default" ]; then
+    printf " ${BLUE}%s %s%s" "$ICON_DOCKER" "$DOCKER_CONTEXT" "$__RESET"
+  fi
+}
+
+# ---------- Git (single scan per dir, cached) ----------
+__GIT_PWD=""; __GIT_SEG=""
+__git_seg() {
+  if [ "$PWD" = "$__GIT_PWD" ] && [ -n "$__GIT_SEG" ]; then printf '%s' "$__GIT_SEG"; return; fi
+  __GIT_PWD=$PWD; __GIT_SEG=""
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then printf ''; return; fi
+  local branch flags="" s repo
+  repo="$(git config --get remote.origin.url 2>/dev/null || true)"
+  branch="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || \
+            git describe --all --exact-match HEAD 2>/dev/null || \
+            git rev-parse --short HEAD 2>/dev/null || echo 'detached')"
+  if echo "$repo" | grep -q 'chromium/src.git' 2>/dev/null; then
+    flags="*"
+  else
+    s="$(git status --porcelain=1 -uno 2>/dev/null)"
+    echo "$s" | grep -qE '^[MADRCU]'       >/dev/null 2>&1 && flags="${flags}+"
+    echo "$s" | grep -qE '^[ MARC?][MDU]'  >/dev/null 2>&1 && flags="${flags}!"
+    git ls-files --others --exclude-standard --directory 2>/dev/null | head -n1 | grep -q . && flags="${flags}?"
+    git rev-parse --verify --quiet refs/stash >/dev/null && flags="${flags}$"
+  fi
+  if [ -n "$flags" ]; then flags=" [${flags}]"; fi
+  __GIT_SEG="${WHITE} on ${BLUE}${branch}${CYAN}${flags}${__RESET}"
+  printf '%s' "$__GIT_SEG"
+}
+
+# ---------- build PS1 ----------
+__build_ps1() {
+  local code=$?
+  __title
+  local host="${PROMPT_HOST:-$(hostname -s)}"
+  local L1=""
+  L1="${L1}${__BOLD}\n"
+  L1="${L1}${USER_STYLE}\u${__RESET}"
+  L1="${L1}${WHITE} at ${__RESET}"
+  L1="${L1}${HOST_STYLE}${host}${__RESET}"
+  L1="${L1}${WHITE} in ${__RESET}"
+  L1="${L1}${GREEN}\w${__RESET}"
+  L1="${L1}$(__git_seg)"
+  L1="${L1}$(__py_seg)"
+  L1="${L1}$(__node_seg)"
+  L1="${L1}$(__docker_seg)"
+  local L2=""
+  L2="${L2}\n${WHITE}\$${__RESET}$(__status_time "$code") "
+  PS1="${L1}${L2}"
+  PS2="${YELLOW}→ ${__RESET}"
+}
+
+# Install without clobbering PROMPT_COMMAND and without duplicate separators
+if [[ -z "${PROMPT_COMMAND:-}" ]]; then
+  PROMPT_COMMAND="__build_ps1"
+elif [[ "$PROMPT_COMMAND" != *"__build_ps1"* ]]; then
+  # Trim trailing spaces/semicolons (glob, not regex)
+  while :; do
+    case "$PROMPT_COMMAND" in
+      *[[:space:]]|*';') PROMPT_COMMAND="${PROMPT_COMMAND%?}" ;;
+      *) break ;;
+    esac
+  done
+  PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND; }__build_ps1"
+fi

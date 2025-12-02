@@ -1,111 +1,130 @@
-tap "bramstein/webfonttools"
 tap "homebrew/bundle"
-tap "homebrew/cask"
-tap "homebrew/cask-versions"
-tap "homebrew/core"
-brew "ack"
-brew "aircrack-ng"
-brew "aria2"
-brew "xz"
-brew "awscli"
+tap "homebrew/services"
+
+# -------------------------------------------------------------------
+# Core shell + GNU userland
+# -------------------------------------------------------------------
 brew "bash"
-brew "bash-completion@2"
-brew "bfg"
-brew "binutils"
-brew "p7zip"
-brew "binwalk"
-brew "cifer"
+brew "bash-completion"
 brew "coreutils"
-brew "dex2jar"
-brew "dns2tcp"
-brew "docker", link: false
-brew "fcrackzip"
-brew "ffmpeg"
-brew "findutils"
-brew "foremost"
-brew "gcc"
-brew "ghostscript"
-brew "git"
-brew "git-flow"
-brew "git-lfs"
-brew "gnupg", link: false
-brew "grep"
-brew "hashpump"
-brew "htop"
-brew "httpie"
-brew "hugo"
-brew "mysql-client"
-brew "hydra"
-brew "john"
-brew "knock"
-brew "lua"
-brew "lynx"
 brew "moreutils"
+
+brew "findutils"
+brew "grep"
+brew "wget"
+
+# -------------------------------------------------------------------
+# CLI essentials
+# -------------------------------------------------------------------
+brew "ack"
+brew "aria2"
+brew "git"
+brew "git-flow"           # uncomment if still needed
+brew "git-lfs"
+brew "gnupg"
+brew "htop"
 brew "ncdu"
+brew "ripgrep"
+brew "tree"
+brew "vbindiff"
+brew "wakeonlan"
+brew "tmux"
+brew "tmuxp"
+
+# -------------------------------------------------------------------
+# Networking / ops (non-CTF)
+# -------------------------------------------------------------------
+brew "caddy"
+brew "colima"
+brew "docker"
+brew "docker-compose"
+brew "openssh"
+brew "ssh-copy-id"
+brew "socat"
+brew "tcpflow"
+brew "tcpreplay"
+brew "telnet"
+brew "ucspi-tcp"
+
+# -------------------------------------------------------------------
+# Languages & runtimes
+# -------------------------------------------------------------------
+brew "go"
+brew "node"
+brew "lua"
+brew "python@3.13"
+brew "rbenv"
+brew "rust"
+
+# -------------------------------------------------------------------
+# Build / packaging / data + media tools
+# -------------------------------------------------------------------
+brew "awscli"
+brew "azure-cli"
+brew "ffmpeg"
+brew "ghostscript"
+brew "hugo"
+brew "mkvtoolnix"
 brew "netpbm"
 brew "nmap"
-brew "node@12"
-brew "openssh", link: false
-brew "packer"
 brew "pigz"
 brew "pngcheck"
 brew "pv"
-brew "rbenv"
 brew "rename"
 brew "rlwrap"
-brew "screen"
-brew "socat"
-brew "sqlmap"
-brew "ssh-copy-id"
-brew "tcpflow"
-brew "tcpreplay"
-brew "tcptrace"
-brew "terraform"
-brew "tree"
-brew "ucspi-tcp"
-brew "vbindiff"
-brew "wget"
 brew "woff2"
-brew "xpdf"
-brew "youtube-dl"
+brew "yt-dlp"
 brew "zopfli"
-brew "bramstein/webfonttools/sfnt2woff"
-brew "bramstein/webfonttools/sfnt2woff-zopfli"
-cask "brave-browser"
-cask "discord"
-cask "docker"
-cask "epic-games"
-cask "figma"
+
+# -------------------------------------------------------------------
+# Apps (casks)
+# -------------------------------------------------------------------
+# Browsers
+cask "chromium"
 cask "firefox"
-cask "google-chrome"
-cask "gpg-suite"
-cask "iterm2"
-cask "microsoft-edge"
-cask "microsoft-teams"
-cask "miniconda"
-cask "mysqlworkbench"
-cask "onedrive"
-cask "origin"
-cask "postgres"
-cask "postman"
-cask "pycharm-ce"
-cask "qbittorrent"
-cask "sequel-pro"
-cask "signal"
-cask "skype"
-cask "slack"
-cask "spotify"
-cask "steam"
-cask "sublime-merge"
-cask "sublime-text"
-cask "telegram"
-cask "tidal"
 cask "tor-browser"
-cask "transmission"
-cask "valentina-studio"
+
+# Terminals / IDEs / editors
+cask "ghostty"
+cask "iterm2"
 cask "visual-studio-code"
-cask "vlc"
+cask "antigravity"
+
+
+# Dev tooling
+cask "codex"
+cask "gcloud-cli"
+cask "gpg-suite"
+cask "pgadmin4"
+cask "postman"
+cask "postgres"
+cask "google-cloud-sdk" # ships its own launcher
+
+# Productivity / utilities
+cask "bitwarden"
+cask "elgato-control-center"
+cask "onedrive"
+cask "stats"
 cask "vyprvpn"
+
+# Communication
+cask "discord"
+cask "microsoft-teams"
+cask "signal"
+cask "slack"
+cask "telegram"
 cask "whatsapp"
 cask "zoom"
-cask "zoomus"
+
+# Media
+cask "plexamp"
+cask "spotify"
+cask "vlc"
+
+# Creative / design
+cask "figma"
+
+# Gaming / fun
+cask "bluos-controller"
+cask "epic-games"
+cask "steam"

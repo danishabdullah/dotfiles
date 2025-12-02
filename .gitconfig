@@ -101,7 +101,7 @@
 	# Make `git rebase` safer on macOS
 	# More info: <http://www.git-tower.com/blog/make-git-rebase-safe-on-osx/>
 	trustctime = false
-	editor = subl -n -w
+	editor = code -n -w
 
 	# Prevent showing files whose names contain non-ASCII symbols as unversioned.
 	# http://michael-kuehnel.de/git/2014/11/21/git-mac-osx-and-german-umlaute.html
@@ -110,6 +110,8 @@
 	# Speed up commands involving untracked files such as `git status`.
 	# https://git-scm.com/docs/git-update-index#_untracked_cache
 	untrackedCache = true
+	# Speed up status on macOS (uses built-in fsmonitor)
+	fsmonitor = true
 
 [color]
 
@@ -140,6 +142,7 @@
 
 	# https://help.github.com/articles/signing-commits-using-gpg/
 	gpgsign = true
+	# If using a non-default GPG binary, set: gpg.program = gpg
 
 [diff]
 
@@ -160,6 +163,7 @@
 
 	# Include summaries of merged commits in newly created merge commit messages
 	log = true
+	conflictStyle = zdiff3
 
 [push]
 
@@ -193,6 +197,14 @@
 [init]
 
 	templateDir = ~/.config/git/template/
+	defaultBranch = main
+
+[pull]
+	rebase = false
+
+[status]
+	submoduleSummary = true
+
 [user]
 	name = Danish Abdullah
 	email = dev@danishabdullah.com

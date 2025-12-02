@@ -1,0 +1,11 @@
+session_name: Borg API
+start_directory: ~/code/graph-one-api
+windows:
+  - window_name: Borg API
+    layout: tiled
+    focus: true
+    panes:
+    - ssh deploy@api.graph.one
+    - ssh db1-danish
+    - . /Users/danish/.tmuxp/startup.sh
+    - . /Users/danish/.tmuxp/startup.sh

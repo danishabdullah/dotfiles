@@ -36,5 +36,18 @@ set input-meta on
 set output-meta on
 set convert-meta off
 
+# No audible/visual bell
+set bell-style none
+
+# Colorize completion listings and highlight typed prefix
+set colored-stats on
+set colored-completion-prefix on
+
+# Allow case-mapped completion (e.g., fooBar from foob)
+set completion-map-case on
+
+# Safer pasting (prevents accidental command execution on multi-line paste)
+set enable-bracketed-paste on
+
 # Use Alt/Meta + Delete to delete the preceding word
 "\e[3;3~": kill-word
