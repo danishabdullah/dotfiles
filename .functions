@@ -77,10 +77,10 @@ function dataurl() {
 }
 
 # Start an HTTP server from a directory, optionally specifying the port
-function server() {
-	local port="${1:-8000}";
-	sleep 1 && open "http://localhost:${port}/" &
-	python3 - "${port}" <<'"'"'PY'"'"'
+	function server() {
+		local port="${1:-8000}";
+		sleep 1 && open "http://localhost:${port}/" &
+		python3 - "${port}" <<'PY'
 import http.server
 import socketserver
 import sys
@@ -96,7 +96,7 @@ with socketserver.TCPServer(("", port), handler) as httpd:
     except KeyboardInterrupt:
         pass
 PY
-}
+	}
 
 # Compare original and gzipped file size
 function gz() {
