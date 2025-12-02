@@ -44,8 +44,28 @@ alias egrep='egrep --color=auto'
 # Get week number
 alias week='date +%V'
 
-# Lean updates (OS updates are better handled manually)
-alias update='brew update && brew upgrade && brew cleanup --prune=30; npm install npm -g; npm update -g; sudo gem update --system; sudo gem update; sudo gem cleanup'
+# Lean updates (OS updates are better handled manually); refresh uv, npm, and Ruby gems if present.
+update() {
+	brew update && brew upgrade && brew cleanup --prune=30
+	if command -v uv >/dev/null 2>&1; then
+		uv self update || true
+		uv python install 3.13 || true
+		_outdated="$(uv pip list --outdated --system --format=freeze | cut -d= -f1)"
+		if [ -n "$_outdated" ]; then
+			printf '%s\n' "$_outdated" | xargs uv pip install --upgrade --system || true
+		fi
+		unset _outdated
+	fi
+	if command -v npm >/dev/null 2>&1; then
+		npm install npm -g || true
+		npm update -g || true
+	fi
+	# if command -v gem >/dev/null 2>&1; then
+	# 	sudo gem update --system || true
+	# 	sudo gem update || true
+	# 	sudo gem cleanup || true
+	# fi
+}
 
 # Google Chrome
 alias chrome='/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome'
