@@ -1,0 +1,144 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+
+# Google Chrome (or Chromium)
+if command -v google-chrome >/dev/null 2>&1; then
+	alias chrome="google-chrome"
+elif command -v chromium >/dev/null 2>&1; then
+	alias chrome="chromium"
+elif command -v chromium-browser >/dev/null 2>&1; then
+	alias chrome="chromium-browser"
+fi
+
+# IP addresses
+localip() {
+	ip -4 addr show scope global 2>/dev/null | awk '/inet /{print $2}' | cut -d/ -f1
+}
+
+ips() {
+	ip -o addr show 2>/dev/null | awk '{print $4}' | cut -d/ -f1
+}
+
+ifactive() {
+	ip -o link show up 2>/dev/null | awk -F': ' '{print $2}'
+}
+
+# Flush DNS caches (systemd-resolved or nscd)
+flush() {
+	if command -v resolvectl >/dev/null 2>&1; then
+		sudo resolvectl flush-caches
+	elif command -v systemd-resolve >/dev/null 2>&1; then
+		sudo systemd-resolve --flush-caches
+	elif command -v nscd >/dev/null 2>&1; then
+		sudo systemctl restart nscd
+	else
+		echo "flush: no known DNS cache service found" >&2
+		return 1
+	fi
+}
+
+# Trim new lines and copy to clipboard
+copy() {
+	if command -v wl-copy >/dev/null 2>&1; then
+		tr -d '\n' | wl-copy
+	elif command -v xclip >/dev/null 2>&1; then
+		tr -d '\n' | xclip -selection clipboard
+	elif command -v xsel >/dev/null 2>&1; then
+		tr -d '\n' | xsel --clipboard --input
+	else
+		echo "copy: no clipboard tool found (wl-copy, xclip, xsel)" >&2
+		return 1
+	fi
+}
+
+# Show/hide hidden files in GNOME Files (Nautilus)
+show() {
+	if command -v gsettings >/dev/null 2>&1; then
+		gsettings set org.gnome.nautilus.preferences show-hidden-files true 2>/dev/null || {
+			echo "show: unsupported desktop" >&2
+			return 1
+		}
+	else
+		echo "show: unsupported desktop" >&2
+		return 1
+	fi
+}
+hide() {
+	if command -v gsettings >/dev/null 2>&1; then
+		gsettings set org.gnome.nautilus.preferences show-hidden-files false 2>/dev/null || {
+			echo "hide: unsupported desktop" >&2
+			return 1
+		}
+	else
+		echo "hide: unsupported desktop" >&2
+		return 1
+	fi
+}
+
+# Hide/show desktop icons (GNOME legacy setting)
+hidedesktop() {
+	if command -v gsettings >/dev/null 2>&1; then
+		if gsettings writable org.gnome.desktop.background show-desktop-icons >/dev/null 2>&1; then
+			gsettings set org.gnome.desktop.background show-desktop-icons false
+		elif gsettings writable org.gnome.shell.extensions.ding show-desktop-icons >/dev/null 2>&1; then
+			gsettings set org.gnome.shell.extensions.ding show-desktop-icons false
+		elif gsettings writable org.gnome.shell.extensions.desktop-icons show-desktop-icons >/dev/null 2>&1; then
+			gsettings set org.gnome.shell.extensions.desktop-icons show-desktop-icons false
+		else
+			echo "hidedesktop: unsupported desktop" >&2
+			return 1
+		fi
+	else
+		echo "hidedesktop: unsupported desktop" >&2
+		return 1
+	fi
+}
+showdesktop() {
+	if command -v gsettings >/dev/null 2>&1; then
+		if gsettings writable org.gnome.desktop.background show-desktop-icons >/dev/null 2>&1; then
+			gsettings set org.gnome.desktop.background show-desktop-icons true
+		elif gsettings writable org.gnome.shell.extensions.ding show-desktop-icons >/dev/null 2>&1; then
+			gsettings set org.gnome.shell.extensions.ding show-desktop-icons true
+		elif gsettings writable org.gnome.shell.extensions.desktop-icons show-desktop-icons >/dev/null 2>&1; then
+			gsettings set org.gnome.shell.extensions.desktop-icons show-desktop-icons true
+		else
+			echo "showdesktop: unsupported desktop" >&2
+			return 1
+		fi
+	else
+		echo "showdesktop: unsupported desktop" >&2
+		return 1
+	fi
+}
+
+# Volume helpers
+stfu() {
+	if command -v pactl >/dev/null 2>&1; then
+		pactl set-sink-mute @DEFAULT_SINK@ 1
+	else
+		echo "stfu: pactl not found" >&2
+		return 1
+	fi
+}
+pumpitup() {
+	if command -v pactl >/dev/null 2>&1; then
+		pactl set-sink-volume @DEFAULT_SINK@ 100%
+	else
+		echo "pumpitup: pactl not found" >&2
+		return 1
+	fi
+}
+
+# Lock the screen (when going AFK)
+afk() {
+	if command -v loginctl >/dev/null 2>&1; then
+		loginctl lock-session
+	elif command -v xdg-screensaver >/dev/null 2>&1; then
+		xdg-screensaver lock
+	elif command -v gnome-screensaver-command >/dev/null 2>&1; then
+		gnome-screensaver-command -l
+	else
+		echo "afk: no lock command found" >&2
+		return 1
+	fi
+}

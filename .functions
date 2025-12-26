@@ -7,6 +7,15 @@ function mkd() {
 
 # Change working directory to the top-most Finder window location
 function cdf() { # short for `cdfinder`
+	if declare -F dotfiles_is_macos >/dev/null 2>&1; then
+		if ! dotfiles_is_macos; then
+			echo "cdf is macOS-only" >&2
+			return 1
+		fi
+	elif [[ "$(uname -s 2>/dev/null)" != "Darwin" ]]; then
+		echo "cdf is macOS-only" >&2
+		return 1
+	fi
 	cd "$(osascript -e 'tell app "Finder" to POSIX path of (insertion location as alias)')";
 }
 
@@ -76,10 +85,47 @@ function dataurl() {
 	echo "data:${mimeType};base64,$(openssl base64 -in "$1" | tr -d '\n')";
 }
 
+# Cross-platform opener for URLs/files
+__dot_open() {
+	local target="$1"
+
+	if declare -F dotfiles_is_macos >/dev/null 2>&1 && dotfiles_is_macos; then
+		command open "$target"
+		return $?
+	fi
+
+	if [[ -n "${WSL_DISTRO_NAME:-}" || "${__DOTFILES_IS_WSL:-0}" -eq 1 ]]; then
+		if command -v explorer.exe >/dev/null 2>&1; then
+			explorer.exe "$target"
+			return $?
+		fi
+	fi
+
+	if command -v xdg-open >/dev/null 2>&1; then
+		xdg-open "$target"
+		return $?
+	fi
+
+	if command -v gio >/dev/null 2>&1; then
+		gio open "$target"
+		return $?
+	fi
+
+	local open_path
+	open_path="$(type -P open 2>/dev/null || true)"
+	if [[ -n "$open_path" ]]; then
+		"$open_path" "$target"
+		return $?
+	fi
+
+	echo "open: no opener found" >&2
+	return 1
+}
+
 # Start an HTTP server from a directory, optionally specifying the port
 	function server() {
 		local port="${1:-8000}";
-		sleep 1 && open "http://localhost:${port}/" &
+		sleep 1 && __dot_open "http://localhost:${port}/" &
 		python3 - "${port}" <<'PY'
 import http.server
 import socketserver
@@ -146,24 +192,18 @@ function getcertnames() {
 	fi;
 }
 
-# Normalize `open` across Linux, macOS, and Windows.
-# This is needed to make the `o` function (see below) cross-platform.
-if [ ! $(uname -s) = 'Darwin' ]; then
-	if grep -q Microsoft /proc/version; then
-		# Ubuntu on Windows using the Linux subsystem
-		alias open='explorer.exe';
-	else
-		alias open='xdg-open';
-	fi
+# Provide `open` on non-macOS using the cross-platform opener.
+if ! (declare -F dotfiles_is_macos >/dev/null 2>&1 && dotfiles_is_macos); then
+	open() { __dot_open "$@"; }
 fi
 
 # `o` with no arguments opens the current directory, otherwise opens the given
 # location
 function o() {
 	if [ $# -eq 0 ]; then
-		open .;
+		__dot_open .;
 	else
-		open "$@";
+		__dot_open "$@";
 	fi;
 }
 

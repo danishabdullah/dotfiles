@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# shellcheck shell=bash
+
+# Google Chrome (Windows)
+chrome() {
+	if [[ -x "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe" ]]; then
+		"/mnt/c/Program Files/Google/Chrome/Application/chrome.exe" "$@"
+	elif [[ -x "/mnt/c/Program Files (x86)/Google/Chrome/Application/chrome.exe" ]]; then
+		"/mnt/c/Program Files (x86)/Google/Chrome/Application/chrome.exe" "$@"
+	else
+		echo "chrome: executable not found" >&2
+		return 1
+	fi
+}
+
+# IP addresses
+localip() {
+	ip -4 addr show scope global 2>/dev/null | awk '/inet /{print $2}' | cut -d/ -f1
+}
+
+ips() {
+	ip -o addr show 2>/dev/null | awk '{print $4}' | cut -d/ -f1
+}
+
+ifactive() {
+	ip -o link show up 2>/dev/null | awk -F': ' '{print $2}'
+}
+
+# Flush DNS caches (systemd-resolved if available)
+flush() {
+	if command -v resolvectl >/dev/null 2>&1; then
+		sudo resolvectl flush-caches
+	elif command -v systemd-resolve >/dev/null 2>&1; then
+		sudo systemd-resolve --flush-caches
+	else
+		echo "flush: no known DNS cache service found" >&2
+		return 1
+	fi
+}
+
+# Trim new lines and copy to clipboard (Windows clipboard)
+copy() {
+	if command -v clip.exe >/dev/null 2>&1; then
+		tr -d '\n' | clip.exe
+	else
+		echo "copy: clip.exe not found" >&2
+		return 1
+	fi
+}
+
+# Volume helpers (Windows)
+stfu() {
+	if command -v powershell.exe >/dev/null 2>&1; then
+		powershell.exe -NoProfile -Command "(New-Object -ComObject WScript.Shell).SendKeys([char]173)"
+	else
+		echo "stfu: powershell.exe not found" >&2
+		return 1
+	fi
+}
+pumpitup() {
+	echo "pumpitup: unsupported in WSL (use Windows volume controls)" >&2
+	return 1
+}
+
+# Lock the screen (when going AFK)
+afk() {
+	if command -v cmd.exe >/dev/null 2>&1; then
+		cmd.exe /c "rundll32.exe user32.dll,LockWorkStation"
+	else
+		echo "afk: cmd.exe not found" >&2
+		return 1
+	fi
+}

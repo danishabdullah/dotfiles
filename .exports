@@ -1,6 +1,6 @@
 # Editor (matches ~/.bash_profile)
-export EDITOR="vim"
-export VISUAL="$EDITOR"
+export EDITOR="nano"
+export VISUAL="code"
 
 # Node REPL history
 export NODE_REPL_HISTORY="$HOME/.node_history"

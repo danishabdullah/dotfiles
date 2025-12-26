@@ -40,6 +40,7 @@ case $- in *i*) __BASH_IS_INTERACTIVE=1 ;; *) __BASH_IS_INTERACTIVE=0 ;; esac
 # =============================================================================
 # Order matters: later files may override earlier values.
 declare -a __CONFIG_FILES=(
+  "$HOME/init/os/env.sh"
   "$HOME/.path"          # PATH tweaks
   "$HOME/.bash_prompt"   # Fast Solarized prompt (defines PROMPT_COMMAND)
   "$HOME/.exports"
@@ -57,11 +58,38 @@ unset __f __CONFIG_FILES
 # 2) PROMPT_COMMAND utility — safe prepend without clobbering
 # =============================================================================
 # Usage: __pc_prepend "func_or_cmd"
+__pc_contains() {
+  local cmd="$1"
+  local part trimmed
+
+  [[ -z "${PROMPT_COMMAND:-}" ]] && return 1
+
+  if [[ "$cmd" == *";"* ]]; then
+    [[ "$PROMPT_COMMAND" == *"$cmd"* ]] && return 0
+    return 1
+  fi
+
+  local -a __pc_parts
+  IFS=';' read -r -a __pc_parts <<< "$PROMPT_COMMAND"
+  for part in "${__pc_parts[@]}"; do
+    trimmed="${part#"${part%%[![:space:]]*}"}"
+    trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
+    if [[ "$trimmed" == "$cmd" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 __pc_prepend() {
-  if [[ -n "$PROMPT_COMMAND" ]]; then
-    PROMPT_COMMAND="$1; $PROMPT_COMMAND"
+  local cmd="$1"
+  if [[ -n "${PROMPT_COMMAND:-}" ]]; then
+    if __pc_contains "$cmd"; then
+      return 0
+    fi
+    PROMPT_COMMAND="$cmd; $PROMPT_COMMAND"
   else
-    PROMPT_COMMAND="$1"
+    PROMPT_COMMAND="$cmd"
   fi
 }
 
@@ -227,12 +255,18 @@ export GPG_TTY="$(tty)"
 # Attach to system ssh-agent socket; never spawn a new agent.
 if [[ -z "${SSH_AUTH_SOCK}" || ! -S "${SSH_AUTH_SOCK}" ]]; then
   __found_sock=""
-  for p in /private/tmp/com.apple.launchd.*/*; do
-    [[ -S "$p" ]] && __found_sock="$p" && break
-  done
-  if [[ -z "$__found_sock" ]]; then
+  if dotfiles_is_macos; then
+    for p in /private/tmp/com.apple.launchd.*/*; do
+      [[ -S "$p" ]] && __found_sock="$p" && break
+    done
+  elif dotfiles_is_linux; then
+    for p in "/run/user/$UID/ssh-agent.socket" "/run/user/$UID/keyring/ssh" "/run/user/$UID/gnupg/S.gpg-agent.ssh"; do
+      [[ -S "$p" ]] && __found_sock="$p" && break
+    done
+  fi
+  if [[ -z "$__found_sock" && -n "${TMPDIR:-}" ]]; then
     __tmp="${TMPDIR%/}"
-    for p in "${__tmp}"/*/agent.* "${TMPDIR}"ssh-*/agent.*; do
+    for p in "$__tmp"/*/agent.* "${TMPDIR}"ssh-*/agent.*; do
       [[ -S "$p" ]] && __found_sock="$p" && break
     done
     unset __tmp
@@ -245,7 +279,11 @@ fi
 if [[ ${__BASH_IS_INTERACTIVE} -eq 1 ]]; then
   __DEFAULT_SSH_KEY="$HOME/.ssh/id_ed25519"
   if [[ -r "$__DEFAULT_SSH_KEY" ]] && ! ssh-add -l >/dev/null 2>&1; then
-    ssh-add --apple-use-keychain "$__DEFAULT_SSH_KEY" >/dev/null 2>&1 || true
+    if dotfiles_is_macos; then
+      ssh-add --apple-use-keychain "$__DEFAULT_SSH_KEY" >/dev/null 2>&1 || true
+    else
+      ssh-add "$__DEFAULT_SSH_KEY" >/dev/null 2>&1 || true
+    fi
   fi
   unset __DEFAULT_SSH_KEY
 fi

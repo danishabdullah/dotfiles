@@ -1,16 +1,166 @@
+# Dotfiles
+
 Dotfiles for macOS, focused on a clean Bash-based workflow with Homebrew and sensible defaults.
 
-## Quick start
-- Install Homebrew first, then install the latest Bash before running anything else: `brew install bash` (or `brew update && brew install bash` if Homebrew is already present).
-- Run `./bootstrap.sh` — this will run `./brew.sh` first (skip with `--no-brew`; `--dry-run` skips brew too) and then sync dotfiles. Use `--backup <dir>` to keep overwritten files, or `--dry-run` to preview. Add `--macos` to apply macOS defaults at the end (will prompt for sudo).
+## One-Line Install
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/danishabdullah/dotfiles/master/install.sh)"
+```
+
+This downloads and installs the dotfiles without cloning the repository. Homebrew will be installed automatically if not present.
+
+### Install Options
+
+Customize the installation with environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `DOTFILES_DRY_RUN=1` | Preview changes without writing anything |
+| `DOTFILES_FORCE=1` | Skip all confirmation prompts |
+| `DOTFILES_BACKUP=<path>` | Backup overwritten files to the specified directory |
+| `DOTFILES_NO_BREW=1` | Skip Homebrew package installation |
+| `DOTFILES_MACOS=1` | Apply macOS system defaults (requires sudo) |
+| `DOTFILES_BRANCH=<name>` | Use a specific branch (default: master) |
+
+Example with options:
+
+```bash
+DOTFILES_BACKUP=~/backup DOTFILES_MACOS=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/danishabdullah/dotfiles/master/install.sh)"
+```
+
+## Manual Install
+
+```bash
+git clone https://github.com/danishabdullah/dotfiles.git ~/.dotfiles
+cd ~/.dotfiles
+./bootstrap.sh
+```
+
+### Bootstrap Options
+
+| Flag | Description |
+|------|-------------|
+| `--dry-run`, `-n` | Preview without making changes |
+| `--force`, `-f` | Skip confirmation prompts |
+| `--backup <dir>`, `-b <dir>` | Backup overwritten files |
+| `--no-brew` | Skip Homebrew bundle |
+| `--macos` | Apply macOS system defaults |
+
+## What's Included
+
+### Shell Configuration
+
+| File | Purpose |
+|------|---------|
+| `.bash_profile` | Main shell config — sources all modular files |
+| `.bashrc` | Minimal; sources `.bash_profile` for consistency |
+| `.bash_prompt` | Solarized prompt with git status, Python/Node indicators |
+| `.exports` | Environment variables (EDITOR, LANG, Python settings) |
+| `.aliases` | 180+ command aliases |
+| `.functions` | Utility functions (mkd, cdf, targz, fs, server, etc.) |
+| `.inputrc` | Readline settings (case-insensitive completion, history search) |
+
+### Tool Configuration
+
+| File | Purpose |
+|------|---------|
+| `.gitconfig` | Git aliases, GPG signing, merge settings |
+| `.gitignore` | Global ignore patterns |
+| `.tmux.conf` | Tmux settings (mouse support, 250K history) |
+| `.editorconfig` | Cross-editor settings (UTF-8, indentation) |
+| `.curlrc` | Modern curl defaults |
+| `.wgetrc` | wget options |
+
+### Directories
+
+| Path | Purpose |
+|------|---------|
+| `.config/git/` | Git commit template |
+| `.ssh/` | SSH client configuration |
+| `.tmuxp/` | Tmux session layouts |
+| `init/` | Initialization scripts |
 
 ## Scripts
-- `bootstrap.sh` – rsyncs the repo into `$HOME` with excludes. Supports `--dry-run`, `--force`, and `--backup <dir>`.
-- `brew.sh` – ensures Homebrew Bash is installed, then runs `brew bundle --cleanup` with `./Brewfile`.
-- `brew-drift-report.sh` – shows extra/missing Homebrew formulae/casks/taps compared to `./Brewfile`.
-- `.macos` – opinionated macOS defaults; requires logout/restart for some changes.
 
-## Notes
-- The repo assumes Bash as the interactive shell; `.bash_profile` sources modular files (`.exports`, `.aliases`, `.functions`, etc.).
-- Consider symlink managers (e.g., `stow`/`chezmoi`) if you prefer links over rsync; the current bootstrap copies files.
-- Keep machine-local secrets in `~/.extra` (never checked in).
+| Script | Purpose |
+|--------|---------|
+| `install.sh` | One-line installer (curl-friendly) |
+| `bootstrap.sh` | Syncs dotfiles to `$HOME` using rsync |
+| `brew.sh` | Installs Homebrew packages from Brewfile |
+| `brew-drift-report.sh` | Audits Homebrew state vs Brewfile |
+| `.macos` | Applies opinionated macOS system defaults |
+
+## Key Features
+
+### Python Development (uv-first)
+
+- Auto-activates `.venv` when entering project directories
+- `PIP_REQUIRE_VIRTUALENV=1` prevents accidental global installs
+- Aliases: `pya` (activate), `pyd` (deactivate), `uvr` (uv run)
+
+### Git Integration
+
+- 30+ git aliases (l, s, d, ca, go, amend, mpr, etc.)
+- GPG signing enabled by default
+- URL shorthands: `gh:user/repo`, `gist:hash`
+- Git status in prompt (cached for performance)
+
+### Performance Optimizations
+
+- Lazy-loaded bash completions
+- Cached Homebrew shellenv
+- Slow command timer (warns when commands exceed threshold)
+- History merging across terminal sessions
+
+### Security
+
+- SSH: strict host key checking, no agent/X11 forwarding by default
+- GPG TTY configuration for signing
+- Restrictive umask (027)
+
+## Customization
+
+### Machine-Local Settings
+
+Create `~/.extra` for secrets and machine-specific configuration (never commit this file):
+
+```bash
+# ~/.extra
+export GITHUB_TOKEN="..."
+export AWS_PROFILE="personal"
+```
+
+### Custom PATH
+
+Create `~/.path` for additional PATH entries:
+
+```bash
+# ~/.path
+export PATH="$HOME/custom/bin:$PATH"
+```
+
+Both files are automatically sourced by `.bash_profile` if they exist.
+
+## Post-Install
+
+1. Start a new shell or run `source ~/.bash_profile`
+2. Create `~/.extra` for machine-local secrets
+3. Add SSH keys to `~/.ssh/` (auto-added to keychain)
+4. Run `~/.macos` if you didn't use the `--macos` flag
+
+## Updating
+
+To pull the latest changes:
+
+```bash
+cd ~/.dotfiles  # or wherever you cloned it
+git pull
+./bootstrap.sh
+```
+
+Or re-run the one-liner to download fresh.
+
+## Credits
+
+Inspired by [Mathias Bynens' dotfiles](https://github.com/mathiasbynens/dotfiles).

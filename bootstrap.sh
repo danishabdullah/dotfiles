@@ -67,6 +67,9 @@ doIt() {
     --exclude ".git/"
     --exclude ".DS_Store"
     --exclude "bootstrap.sh"
+    --exclude "brew.sh"
+    --exclude "brew-drift-report.sh"
+    --exclude "install.sh"
     --exclude "README.md"
     --exclude "LICENSE-MIT.txt"
   )
@@ -88,10 +91,10 @@ doIt() {
   if [[ $RUN_MACOS -eq 1 ]]; then
     if [[ -x ./.macos ]]; then
       echo "Running ./.macos (may prompt for sudo)..."
-      sudo ./.macos
+      ./.macos
     elif [[ -f ./.macos ]]; then
       echo "Running ./.macos via bash (may prompt for sudo)..."
-      sudo bash ./.macos
+      bash ./.macos
     else
       echo ".macos not found; skipping macOS defaults." >&2
     fi
