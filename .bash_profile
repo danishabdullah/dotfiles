@@ -299,6 +299,11 @@ elif [[ -x "$HOME/.modular/bin/magic" ]]; then
   alias magic="$HOME/.modular/bin/magic"
 fi
 
+# direnv (load .envrc on directory changes)
+if [[ ${__BASH_IS_INTERACTIVE} -eq 1 ]] && command -v direnv >/dev/null 2>&1; then
+  eval "$(direnv hook bash)"
+fi
+
 
 # =============================================================================
 # 10) Pager & terminal niceties (safe everywhere)

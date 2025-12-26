@@ -6,6 +6,9 @@
 #   --dry-run/-n     : show what would change without writing
 #   --backup/-b <dir>: rsync backup dir for overwritten files
 #   --no-brew        : skip running ./brew.sh before syncing
+#   --no-apt         : skip running ./apt.sh before syncing (Debian/Ubuntu only)
+#   --apt-desktop    : include Aptfile.desktop packages (Debian/Ubuntu only)
+#   --apt-setup-repos: set up external apt repos (Caddy + Azure CLI + PostgreSQL)
 #   --macos          : run ./.macos after syncing (skipped on --dry-run)
 # --------------------------------------------------------------------
 set -euo pipefail
@@ -14,7 +17,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 
 usage() {
   cat <<'EOF'
-Usage: ./bootstrap.sh [--force|-f] [--dry-run|-n] [--backup|-b <dir>] [--no-brew] [--macos]
+Usage: ./bootstrap.sh [--force|-f] [--dry-run|-n] [--backup|-b <dir>] [--no-brew] [--no-apt] [--apt-desktop] [--apt-setup-repos] [--macos]
 EOF
 }
 
@@ -22,6 +25,9 @@ DRY_RUN=0
 FORCE=0
 BACKUP_DIR=""
 NO_BREW=0
+NO_APT=0
+APT_DESKTOP=0
+APT_SETUP_REPOS=0
 RUN_MACOS=0
 
 while [[ $# -gt 0 ]]; do
@@ -33,6 +39,9 @@ while [[ $# -gt 0 ]]; do
       shift || true
       ;;
     --no-brew) NO_BREW=1 ;;
+    --no-apt) NO_APT=1 ;;
+    --apt-desktop) APT_DESKTOP=1 ;;
+    --apt-setup-repos) APT_SETUP_REPOS=1 ;;
     --macos) RUN_MACOS=1 ;;
     -h|--help) usage; exit 0 ;;
     *)
@@ -61,6 +70,38 @@ doIt() {
     fi
   fi
 
+  if [[ $NO_APT -ne 1 ]]; then
+    if [[ $DRY_RUN -eq 1 ]]; then
+      echo "Skipping apt.sh because --dry-run was requested"
+    elif [[ "$(uname -s)" == "Linux" ]] && [[ -r /etc/os-release ]] && grep -qEi '^(ID|ID_LIKE)=.*debian' /etc/os-release; then
+      if [[ -x ./apt.sh ]]; then
+        echo "Running ./apt.sh (Aptfile packages)..."
+        if [[ $APT_DESKTOP -eq 1 && $APT_SETUP_REPOS -eq 1 ]]; then
+          ./apt.sh --desktop --setup-repos
+        elif [[ $APT_DESKTOP -eq 1 ]]; then
+          ./apt.sh --desktop
+        elif [[ $APT_SETUP_REPOS -eq 1 ]]; then
+          ./apt.sh --setup-repos
+        else
+          ./apt.sh
+        fi
+      elif [[ -f ./apt.sh ]]; then
+        echo "Running apt.sh via bash (not executable)..."
+        if [[ $APT_DESKTOP -eq 1 && $APT_SETUP_REPOS -eq 1 ]]; then
+          bash ./apt.sh --desktop --setup-repos
+        elif [[ $APT_DESKTOP -eq 1 ]]; then
+          bash ./apt.sh --desktop
+        elif [[ $APT_SETUP_REPOS -eq 1 ]]; then
+          bash ./apt.sh --setup-repos
+        else
+          bash ./apt.sh
+        fi
+      else
+        echo "apt.sh not found; skipping Aptfile packages." >&2
+      fi
+    fi
+  fi
+
   local rsync_flags=(
     -avh
     --no-perms
@@ -69,6 +110,8 @@ doIt() {
     --exclude "bootstrap.sh"
     --exclude "brew.sh"
     --exclude "brew-drift-report.sh"
+    --exclude "apt.sh"
+    --exclude "apt-repos.sh"
     --exclude "install.sh"
     --exclude "README.md"
     --exclude "LICENSE-MIT.txt"

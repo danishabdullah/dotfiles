@@ -18,6 +18,7 @@ brew "wget"
 # -------------------------------------------------------------------
 brew "ack"
 brew "aria2"
+brew "direnv"
 brew "git"
 brew "git-flow"           # uncomment if still needed
 brew "git-lfs"

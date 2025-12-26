@@ -1,0 +1,77 @@
+# Debian/Ubuntu core packages for dev setup
+# Lines starting with # are ignored. Some packages may require extra repos.
+
+# Base build tools
+build-essential
+pkg-config
+ca-certificates
+curl
+
+# Core shell + GNU userland
+bash
+bash-completion
+coreutils
+moreutils
+findutils
+grep
+wget
+
+# CLI essentials
+ack
+aria2
+git
+git-flow
+git-lfs
+gnupg
+htop
+ncdu
+ripgrep
+tree
+vbindiff
+wakeonlan
+tmux
+python3-tmuxp
+
+# Networking / ops
+caddy            # requires external repo on Debian/Ubuntu
+docker.io
+docker-compose
+docker-compose-plugin
+openssh-client
+socat
+tcpflow
+tcpreplay
+telnet
+ucspi-tcp
+
+# Languages & runtimes
+golang
+nodejs
+npm
+lua5.3
+python3
+python3-venv
+python3-pip
+rbenv
+rustc
+cargo
+
+# Build / packaging / data tools
+awscli
+azure-cli        # requires external repo on Debian/Ubuntu
+libpq-dev
+postgresql-server-dev-all
+ffmpeg
+ghostscript
+hugo
+mkvtoolnix
+netpbm
+nmap
+pigz
+pngcheck
+pv
+rename
+rlwrap
+woff2
+yt-dlp
+zopfli

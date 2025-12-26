@@ -11,6 +11,9 @@
 #   DOTFILES_DRY_RUN=1   - Preview changes without writing
 #   DOTFILES_BACKUP=path - Backup existing files to this directory
 #   DOTFILES_NO_BREW=1   - Skip Homebrew bundle installation
+#   DOTFILES_NO_APT=1    - Skip Aptfile package installation (Debian/Ubuntu)
+#   DOTFILES_APT_DESKTOP=1 - Include Aptfile.desktop packages (Debian/Ubuntu)
+#   DOTFILES_APT_SETUP_REPOS=1 - Configure external apt repos (Caddy + Azure CLI + PostgreSQL)
 #   DOTFILES_MACOS=1     - Apply macOS system defaults
 #   DOTFILES_BRANCH=name - Use a specific branch (default: master)
 #   DOTFILES_STRICT=1    - Exit with error if any warnings occur
@@ -37,6 +40,7 @@ fi
 
 # Computed after args are parsed
 TARBALL_URL=""
+SOURCE_DIR=""
 
 # Cache uname result
 OS_TYPE="$(uname)"
@@ -57,7 +61,7 @@ SYNC_STATS=""
 BACKUP_TIMESTAMP=""
 
 # Centralized exclusion list (used by both check_overwrites and rsync)
-EXCLUDE_FILES=(".git" ".DS_Store" "bootstrap.sh" "brew.sh" "brew-drift-report.sh" "install.sh" "README.md" "LICENSE-MIT.txt")
+EXCLUDE_FILES=(".git" ".DS_Store" "bootstrap.sh" "brew.sh" "brew-drift-report.sh" "apt.sh" "apt-repos.sh" "install.sh" "README.md" "LICENSE-MIT.txt")
 
 # Colors for output (disabled if stderr is not a TTY)
 # All logging goes to stderr to keep stdout clean for data/return values
@@ -112,6 +116,9 @@ Environment Variables:
   DOTFILES_DRY_RUN=1     Preview changes without writing anything
   DOTFILES_BACKUP=<dir>  Backup overwritten files to specified directory
   DOTFILES_NO_BREW=1     Skip Homebrew package installation
+  DOTFILES_NO_APT=1      Skip Aptfile package installation (Debian/Ubuntu)
+  DOTFILES_APT_DESKTOP=1 Include Aptfile.desktop packages (Debian/Ubuntu)
+  DOTFILES_APT_SETUP_REPOS=1 Configure external apt repos (Caddy + Azure CLI + PostgreSQL)
   DOTFILES_MACOS=1       Apply macOS system defaults (requires sudo)
   DOTFILES_BRANCH=<name> Use a specific branch (default: master)
   DOTFILES_STRICT=1      Exit with error code if any warnings occur
@@ -128,6 +135,9 @@ Command Line Options:
   --user <name>            Use a different GitHub user
   --repo <name>            Use a different repo name
   --no-brew                Skip Homebrew package installation
+  --no-apt                 Skip Aptfile package installation (Debian/Ubuntu)
+  --apt-desktop            Include Aptfile.desktop packages (Debian/Ubuntu)
+  --apt-setup-repos        Configure external apt repos (Caddy + Azure CLI + PostgreSQL)
   --macos                  Apply macOS system defaults (requires sudo)
   --strict                 Exit with error code if any warnings occur
 
@@ -190,6 +200,9 @@ parse_args() {
             -f|--force) export DOTFILES_FORCE=1 ;;
             -n|--dry-run) export DOTFILES_DRY_RUN=1 ;;
             --no-brew) export DOTFILES_NO_BREW=1 ;;
+            --no-apt) export DOTFILES_NO_APT=1 ;;
+            --apt-desktop) export DOTFILES_APT_DESKTOP=1 ;;
+            --apt-setup-repos) export DOTFILES_APT_SETUP_REPOS=1 ;;
             --macos) export DOTFILES_MACOS=1 ;;
             --strict) export DOTFILES_STRICT=1 ;;
             --branch)
@@ -233,6 +246,43 @@ parse_args() {
 # Check if running interactively
 is_interactive() {
     [[ -t 0 && -t 1 ]]
+}
+
+# Detect Debian/Ubuntu
+is_debian_like() {
+    if [[ "$OS_TYPE" != "Linux" ]]; then
+        return 1
+    fi
+    if [[ -r /etc/os-release ]]; then
+        local os_id os_like
+        os_id="$(awk -F= '$1=="ID"{print $2}' /etc/os-release | tr -d '"')"
+        os_like="$(awk -F= '$1=="ID_LIKE"{print $2}' /etc/os-release | tr -d '"')"
+        [[ "$os_id" == "debian" || "$os_like" == *debian* ]]
+        return $?
+    fi
+    return 1
+}
+
+# Collect Aptfile paths (core + optional desktop) from a base directory
+collect_aptfiles() {
+    local base_dir="$1"
+    local -a files=()
+
+    if [[ -f "$base_dir/Aptfile.core" ]]; then
+        files+=("$base_dir/Aptfile.core")
+    elif [[ -f "$base_dir/Aptfile" ]]; then
+        files+=("$base_dir/Aptfile")
+    fi
+
+    if [[ "${DOTFILES_APT_DESKTOP:-}" == "1" && -f "$base_dir/Aptfile.desktop" ]]; then
+        files+=("$base_dir/Aptfile.desktop")
+    fi
+
+    if [[ ${#files[@]} -eq 0 ]]; then
+        return 1
+    fi
+
+    printf '%s\n' "${files[@]}"
 }
 
 # Unified prompt function
@@ -605,8 +655,8 @@ run_brew_bundle() {
 
     if [[ "$OS_TYPE" != "Darwin" ]]; then
         info "Skipping Homebrew bundle on non-macOS"
-        if [[ "$OS_TYPE" == "Linux" ]]; then
-            info "Debian/Ubuntu hint: install packages via apt (Aptfile support not yet wired)"
+        if is_debian_like; then
+            info "Debian/Ubuntu hint: install packages via apt (Aptfile supported)"
         fi
         return 0
     fi
@@ -640,6 +690,129 @@ run_brew_bundle() {
     success "Homebrew packages installed!"
 }
 
+# Run Aptfile packages on Debian/Ubuntu
+run_apt_bundle() {
+    if [[ "${DOTFILES_NO_APT:-}" == "1" ]]; then
+        info "Skipping Aptfile packages (DOTFILES_NO_APT=1)"
+        return 0
+    fi
+
+    if ! is_debian_like; then
+        return 0
+    fi
+
+    if [[ "${DOTFILES_APT_SETUP_REPOS:-}" == "1" ]]; then
+        local repo_script=""
+        if [[ -n "$SOURCE_DIR" && -f "$SOURCE_DIR/apt-repos.sh" ]]; then
+            repo_script="$SOURCE_DIR/apt-repos.sh"
+        elif [[ -f "$HOME/apt-repos.sh" ]]; then
+            repo_script="$HOME/apt-repos.sh"
+        fi
+
+        if [[ -n "$repo_script" ]]; then
+            if [[ -x "$repo_script" ]]; then
+                "$repo_script" --all || warn "apt-repos.sh failed"
+            else
+                bash "$repo_script" --all || warn "apt-repos.sh failed"
+            fi
+        else
+            warn "apt-repos.sh not found; skipping repo setup"
+        fi
+    fi
+
+    if ! command -v apt-get &>/dev/null; then
+        warn "apt-get not found, skipping Aptfile installation"
+        return 0
+    fi
+
+    local -a aptfiles=()
+    while IFS= read -r file; do
+        aptfiles+=("$file")
+    done < <(collect_aptfiles "$HOME" || true)
+
+    if [[ ${#aptfiles[@]} -eq 0 ]]; then
+        warn "No Aptfile found in home directory, skipping package installation"
+        return 0
+    fi
+
+    if [[ "${DOTFILES_APT_DESKTOP:-}" == "1" && ! -f "$HOME/Aptfile.desktop" ]]; then
+        warn "DOTFILES_APT_DESKTOP=1 set but Aptfile.desktop not found"
+    fi
+
+    local apt_label="Aptfile.core"
+    if [[ ! -f "$HOME/Aptfile.core" && -f "$HOME/Aptfile" ]]; then
+        apt_label="Aptfile"
+    fi
+    if [[ "${DOTFILES_APT_DESKTOP:-}" == "1" && -f "$HOME/Aptfile.desktop" ]]; then
+        apt_label="${apt_label} + Aptfile.desktop"
+    fi
+
+    if ! confirm_optional "Install Debian packages from ${apt_label}?" "y"; then
+        info "Skipping Aptfile packages"
+        return 0
+    fi
+
+    local sudo_cmd=""
+    if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
+        sudo_cmd="sudo"
+    fi
+
+    info "Running Aptfile packages..."
+    if ! $sudo_cmd apt-get update; then
+        warn "apt-get update failed, continuing anyway..."
+    fi
+
+    local line
+    for aptfile in "${aptfiles[@]}"; do
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            line="${line%%#*}"
+            line="${line#"${line%%[![:space:]]*}"}"
+            line="${line%"${line##*[![:space:]]}"}"
+            [[ -z "$line" ]] && continue
+
+            if dpkg -s "$line" >/dev/null 2>&1; then
+                continue
+            fi
+
+            if ! $sudo_cmd apt-get install -y "$line"; then
+                warn "Failed to install: $line"
+                [[ "${DOTFILES_STRICT:-}" == "1" ]] && return 1
+            fi
+        done < "$aptfile"
+    done
+
+    success "Aptfile packages installed!"
+    return 0
+}
+
+# Preview Aptfile packages without installing
+print_apt_plan() {
+    if [[ "${DOTFILES_NO_APT:-}" == "1" ]]; then
+        info "Skipping Aptfile preview (DOTFILES_NO_APT=1)"
+        return 0
+    fi
+
+    if [[ "$#" -eq 0 ]]; then
+        warn "No Aptfile found, skipping Aptfile preview"
+        return 0
+    fi
+
+    info "Aptfile package preview (dry run)"
+    for aptfile in "$@"; do
+        if [[ ! -f "$aptfile" ]]; then
+            warn "No Aptfile found at $aptfile, skipping"
+            continue
+        fi
+        echo "From $(basename "$aptfile"):" >&2
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            line="${line%%#*}"
+            line="${line#"${line%%[![:space:]]*}"}"
+            line="${line%"${line##*[![:space:]]}"}"
+            [[ -z "$line" ]] && continue
+            echo "  - $line" >&2
+        done < "$aptfile"
+    done
+}
 # Preview Homebrew bundle entries without installing
 print_brew_plan() {
     local brewfile="$1"
@@ -809,6 +982,16 @@ main() {
     echo "  - Download dotfiles to a temporary directory" >&2
     echo "  - Sync configuration files to your home directory" >&2
     [[ "${DOTFILES_NO_BREW:-}" != "1" ]] && echo "  - Install Homebrew packages (optional)" >&2
+    if is_debian_like && [[ "${DOTFILES_NO_APT:-}" != "1" ]]; then
+        if [[ "${DOTFILES_APT_DESKTOP:-}" == "1" ]]; then
+            echo "  - Install Debian packages from Aptfile.core + Aptfile.desktop (optional)" >&2
+        else
+            echo "  - Install Debian packages from Aptfile.core (optional)" >&2
+        fi
+        if [[ "${DOTFILES_APT_SETUP_REPOS:-}" == "1" ]]; then
+            echo "  - Configure external apt repos (optional)" >&2
+        fi
+    fi
     [[ "${DOTFILES_MACOS:-}" == "1" ]] && echo "  - Apply macOS system defaults" >&2
     echo >&2
 
@@ -840,6 +1023,7 @@ main() {
     # Download dotfiles
     local source_dir
     source_dir="$(download_dotfiles)"
+    SOURCE_DIR="$source_dir"
 
     # Verify we got a valid path
     if [[ -z "$source_dir" || ! -d "$source_dir" ]]; then
@@ -856,6 +1040,7 @@ main() {
     if [[ "${DOTFILES_DRY_RUN:-}" != "1" ]]; then
         fix_ssh_permissions
         run_brew_bundle
+        run_apt_bundle
         apply_macos_defaults
         print_postinstall || exit 1
     else
@@ -864,8 +1049,12 @@ main() {
             print_brew_plan "$source_dir/Brewfile"
         else
             info "Dry run: skipping Homebrew preview on non-macOS"
-            if [[ "$OS_TYPE" == "Linux" ]]; then
-                info "Debian/Ubuntu hint: install packages via apt (Aptfile support not yet wired)"
+            if is_debian_like; then
+                local -a aptfiles=()
+                while IFS= read -r file; do
+                    aptfiles+=("$file")
+                done < <(collect_aptfiles "$source_dir" || true)
+                print_apt_plan "${aptfiles[@]}"
             fi
         fi
         echo >&2

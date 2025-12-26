@@ -20,6 +20,9 @@ Customize the installation with environment variables:
 | `DOTFILES_FORCE=1` | Skip all confirmation prompts |
 | `DOTFILES_BACKUP=<path>` | Backup overwritten files to the specified directory |
 | `DOTFILES_NO_BREW=1` | Skip Homebrew package installation |
+| `DOTFILES_NO_APT=1` | Skip Aptfile package installation (Debian/Ubuntu) |
+| `DOTFILES_APT_DESKTOP=1` | Include Aptfile.desktop packages (Debian/Ubuntu) |
+| `DOTFILES_APT_SETUP_REPOS=1` | Configure external apt repos (Caddy + Azure CLI + PostgreSQL) |
 | `DOTFILES_MACOS=1` | Apply macOS system defaults (requires sudo) |
 | `DOTFILES_BRANCH=<name>` | Use a specific branch (default: master) |
 
@@ -45,6 +48,9 @@ cd ~/.dotfiles
 | `--force`, `-f` | Skip confirmation prompts |
 | `--backup <dir>`, `-b <dir>` | Backup overwritten files |
 | `--no-brew` | Skip Homebrew bundle |
+| `--no-apt` | Skip Aptfile packages (Debian/Ubuntu) |
+| `--apt-desktop` | Include Aptfile.desktop packages (Debian/Ubuntu) |
+| `--apt-setup-repos` | Configure external apt repos (Caddy + Azure CLI + PostgreSQL) |
 | `--macos` | Apply macOS system defaults |
 
 ## What's Included
@@ -88,8 +94,18 @@ cd ~/.dotfiles
 | `install.sh` | One-line installer (curl-friendly) |
 | `bootstrap.sh` | Syncs dotfiles to `$HOME` using rsync |
 | `brew.sh` | Installs Homebrew packages from Brewfile |
+| `apt.sh` | Installs Debian/Ubuntu packages from Aptfile.core (+ Aptfile.desktop if enabled) |
+| `apt-repos.sh` | Adds external apt repos (Caddy + Azure CLI + PostgreSQL) |
 | `brew-drift-report.sh` | Audits Homebrew state vs Brewfile |
 | `.macos` | Applies opinionated macOS system defaults |
+
+### Package Lists
+
+| File | Purpose |
+|------|---------|
+| `Brewfile` | Homebrew packages (macOS) |
+| `Aptfile.core` | Debian/Ubuntu core packages |
+| `Aptfile.desktop` | Debian/Ubuntu desktop/media packages |
 
 ## Key Features
 
