@@ -82,10 +82,14 @@ else
 fi
 
 if [[ "$APT_SETUP_REPOS" == "1" ]]; then
+  repo_args=(--all)
+  # Add Ghostty repo when installing desktop packages
+  [[ "$APT_DESKTOP" == "1" ]] && repo_args+=(--ghostty)
+
   if [[ -x "$APT_DIR/apt-repos.sh" ]]; then
-    "$APT_DIR/apt-repos.sh" --all
+    "$APT_DIR/apt-repos.sh" "${repo_args[@]}"
   elif [[ -f "$APT_DIR/apt-repos.sh" ]]; then
-    bash "$APT_DIR/apt-repos.sh" --all
+    bash "$APT_DIR/apt-repos.sh" "${repo_args[@]}"
   else
     echo "Warning: apt-repos.sh not found; skipping repo setup" >&2
   fi

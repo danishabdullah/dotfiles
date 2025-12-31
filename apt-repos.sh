@@ -4,13 +4,14 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: ./apt-repos.sh [--all] [--caddy] [--azure-cli] [--postgres]
+Usage: ./apt-repos.sh [--all] [--caddy] [--azure-cli] [--postgres] [--ghostty]
 
 Options:
-  --all        Set up all supported repos (default)
+  --all        Set up core repos: Caddy, Azure CLI, PostgreSQL (default)
   --caddy      Add Caddy repository
   --azure-cli  Add Azure CLI repository
   --postgres   Add PostgreSQL (PGDG) repository
+  --ghostty    Add Ghostty terminal repository (desktop only, not in --all)
   -h, --help   Show this help
 EOF
 }
@@ -18,13 +19,15 @@ EOF
 WANT_CADDY=0
 WANT_AZURE=0
 WANT_PG=0
+WANT_GHOSTTY=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --all) WANT_CADDY=1; WANT_AZURE=1; WANT_PG=1 ;;
+    --all) WANT_CADDY=1; WANT_AZURE=1; WANT_PG=1 ;;  # Ghostty excluded (desktop-only)
     --caddy) WANT_CADDY=1 ;;
     --azure-cli) WANT_AZURE=1 ;;
     --postgres) WANT_PG=1 ;;
+    --ghostty) WANT_GHOSTTY=1 ;;
     -h|--help) usage; exit 0 ;;
     *)
       echo "Unknown option: $1" >&2
@@ -35,7 +38,8 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-if [[ $WANT_CADDY -eq 0 && $WANT_AZURE -eq 0 && $WANT_PG -eq 0 ]]; then
+# Default to core repos only (Ghostty is desktop-only, must be explicitly requested)
+if [[ $WANT_CADDY -eq 0 && $WANT_AZURE -eq 0 && $WANT_PG -eq 0 && $WANT_GHOSTTY -eq 0 ]]; then
   WANT_CADDY=1
   WANT_AZURE=1
   WANT_PG=1
@@ -115,6 +119,18 @@ setup_postgres() {
   echo "PostgreSQL repo configured"
 }
 
+setup_ghostty() {
+  local keyring="/usr/share/keyrings/ghostty.gpg"
+  local list="/etc/apt/sources.list.d/ghostty.list"
+  if [[ -f "$list" ]] && grep -q "debian.griffo.io" "$list"; then
+    echo "Ghostty repo already configured"
+    return 0
+  fi
+  curl -fsSL "https://debian.griffo.io/EA0F721D231FDD3A0A17B9AC7808B4DD62C41256.asc" | $SUDO gpg --dearmor -o "$keyring"
+  echo "deb [arch=${ARCH} signed-by=${keyring}] https://debian.griffo.io/apt ${CODENAME} main" | $SUDO tee "$list" >/dev/null
+  echo "Ghostty repo configured"
+}
+
 if [[ $WANT_CADDY -eq 1 ]]; then
   setup_caddy
 fi
@@ -125,6 +141,10 @@ fi
 
 if [[ $WANT_PG -eq 1 ]]; then
   setup_postgres
+fi
+
+if [[ $WANT_GHOSTTY -eq 1 ]]; then
+  setup_ghostty
 fi
 
 echo "Done. Run apt-get update to refresh package lists."

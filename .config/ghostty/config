@@ -1,0 +1,10 @@
+# Ghostty terminal configuration
+# https://ghostty.org/docs/config
+
+# Font - JetBrains Mono Nerd Font with ligatures
+font-family = "JetBrainsMono Nerd Font"
+font-size = 14
+
+# Enable font features (ligatures)
+font-feature = calt
+font-feature = liga

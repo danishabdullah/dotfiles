@@ -6,6 +6,8 @@ build-essential
 pkg-config
 ca-certificates
 curl
+unzip
+fontconfig
 
 # Core shell + GNU userland
 bash

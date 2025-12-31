@@ -1,4 +1,5 @@
 # Debian/Ubuntu desktop/media packages
 # Install with: apt.sh --desktop or DOTFILES_APT_DESKTOP=1
 
-# Add desktop-only packages here (GUI apps, etc.)
+# Terminals
+ghostty           # requires external repo (apt-repos.sh --ghostty)

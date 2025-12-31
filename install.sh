@@ -14,9 +14,12 @@
 #   DOTFILES_NO_APT=1    - Skip Aptfile package installation (Debian/Ubuntu)
 #   DOTFILES_APT_DESKTOP=1 - Include Aptfile.desktop packages (Debian/Ubuntu)
 #   DOTFILES_APT_SETUP_REPOS=1 - Configure external apt repos (Caddy + Azure CLI + PostgreSQL)
+#   DOTFILES_NO_SHELL=1  - Skip changing default shell to latest bash
 #   DOTFILES_MACOS=1     - Apply macOS system defaults
 #   DOTFILES_BRANCH=name - Use a specific branch (default: master)
 #   DOTFILES_STRICT=1    - Exit with error if any warnings occur
+#   DOTFILES_NO_FONTS=1  - Skip Nerd Fonts installation (Linux only)
+#   DOTFILES_DEFAULT_FONT=name - Set default font (e.g., FiraCode, JetBrainsMono)
 #
 set -euo pipefail
 
@@ -61,7 +64,7 @@ SYNC_STATS=""
 BACKUP_TIMESTAMP=""
 
 # Centralized exclusion list (used by both check_overwrites and rsync)
-EXCLUDE_FILES=(".git" ".DS_Store" "bootstrap.sh" "brew.sh" "brew-drift-report.sh" "apt.sh" "apt-repos.sh" "install.sh" "README.md" "LICENSE-MIT.txt")
+EXCLUDE_FILES=(".git" ".DS_Store" "bootstrap.sh" "brew.sh" "brew-drift-report.sh" "apt.sh" "apt-repos.sh" "fonts.sh" "install.sh" "README.md" "LICENSE-MIT.txt")
 
 # Colors for output (disabled if stderr is not a TTY)
 # All logging goes to stderr to keep stdout clean for data/return values
@@ -119,9 +122,12 @@ Environment Variables:
   DOTFILES_NO_APT=1      Skip Aptfile package installation (Debian/Ubuntu)
   DOTFILES_APT_DESKTOP=1 Include Aptfile.desktop packages (Debian/Ubuntu)
   DOTFILES_APT_SETUP_REPOS=1 Configure external apt repos (Caddy + Azure CLI + PostgreSQL)
+  DOTFILES_NO_SHELL=1    Skip changing default shell to latest bash
   DOTFILES_MACOS=1       Apply macOS system defaults (requires sudo)
   DOTFILES_BRANCH=<name> Use a specific branch (default: master)
   DOTFILES_STRICT=1      Exit with error code if any warnings occur
+  DOTFILES_NO_FONTS=1    Skip Nerd Fonts installation (Linux only)
+  DOTFILES_DEFAULT_FONT=<name> Set default font (e.g., FiraCode, JetBrainsMono)
   GITHUB_USER=<user>     Use a different GitHub user (default: danishabdullah)
   GITHUB_REPO=<repo>     Use a different repo name (default: dotfiles)
 
@@ -138,8 +144,11 @@ Command Line Options:
   --no-apt                 Skip Aptfile package installation (Debian/Ubuntu)
   --apt-desktop            Include Aptfile.desktop packages (Debian/Ubuntu)
   --apt-setup-repos        Configure external apt repos (Caddy + Azure CLI + PostgreSQL)
+  --no-shell               Skip changing default shell to latest bash
   --macos                  Apply macOS system defaults (requires sudo)
   --strict                 Exit with error code if any warnings occur
+  --no-fonts               Skip Nerd Fonts installation (Linux only)
+  --default-font <name>    Set default font (e.g., FiraCode, JetBrainsMono)
 
 Examples:
   # Dry run to preview changes
@@ -203,8 +212,15 @@ parse_args() {
             --no-apt) export DOTFILES_NO_APT=1 ;;
             --apt-desktop) export DOTFILES_APT_DESKTOP=1 ;;
             --apt-setup-repos) export DOTFILES_APT_SETUP_REPOS=1 ;;
+            --no-shell) export DOTFILES_NO_SHELL=1 ;;
             --macos) export DOTFILES_MACOS=1 ;;
             --strict) export DOTFILES_STRICT=1 ;;
+            --no-fonts) export DOTFILES_NO_FONTS=1 ;;
+            --default-font)
+                [[ -z "${2:-}" || "$2" == -* ]] && abort "--default-font requires a font name"
+                export DOTFILES_DEFAULT_FONT="$2"
+                shift
+                ;;
             --branch)
                 [[ -z "${2:-}" || "$2" == -* ]] && abort "--branch requires a branch name"
                 DOTFILES_BRANCH="$2"
@@ -248,6 +264,26 @@ is_interactive() {
     [[ -t 0 && -t 1 ]]
 }
 
+# Find the best bash path for the current OS
+get_bash_path() {
+    if [[ "$OS_TYPE" == "Darwin" ]]; then
+        if [[ -x /opt/homebrew/bin/bash ]]; then
+            echo "/opt/homebrew/bin/bash"
+            return 0
+        elif [[ -x /usr/local/bin/bash ]]; then
+            echo "/usr/local/bin/bash"
+            return 0
+        fi
+    fi
+
+    if command -v bash >/dev/null 2>&1; then
+        command -v bash
+        return 0
+    fi
+
+    return 1
+}
+
 # Detect Debian/Ubuntu
 is_debian_like() {
     if [[ "$OS_TYPE" != "Linux" ]]; then
@@ -261,6 +297,48 @@ is_debian_like() {
         return $?
     fi
     return 1
+}
+
+# Ensure the default shell is the latest available bash
+ensure_bash_shell() {
+    if [[ "${DOTFILES_NO_SHELL:-}" == "1" ]]; then
+        info "Skipping default shell update (DOTFILES_NO_SHELL=1)"
+        return 0
+    fi
+    if ! command -v chsh >/dev/null 2>&1; then
+        warn "chsh not found; skipping default shell update"
+        return 0
+    fi
+
+    local bash_path=""
+    bash_path="$(get_bash_path || true)"
+    if [[ -z "$bash_path" ]]; then
+        warn "Bash not found; skipping default shell update"
+        return 0
+    fi
+
+    if [[ "${SHELL:-}" == "$bash_path" ]]; then
+        info "Default shell already set to $bash_path"
+        return 0
+    fi
+
+    if [[ -f /etc/shells ]] && ! grep -qx "$bash_path" /etc/shells; then
+        if confirm_optional "Add $bash_path to /etc/shells? (requires sudo)" "y"; then
+            if ! echo "$bash_path" | sudo tee -a /etc/shells >/dev/null; then
+                warn "Failed to update /etc/shells"
+            fi
+        else
+            warn "$bash_path not in /etc/shells; chsh may fail"
+        fi
+    fi
+
+    if confirm_optional "Change default shell to $bash_path?" "y"; then
+        if ! chsh -s "$bash_path"; then
+            warn "Failed to change default shell"
+        else
+            success "Default shell updated to $bash_path"
+        fi
+    fi
 }
 
 # Collect Aptfile paths (core + optional desktop) from a base directory
@@ -785,6 +863,50 @@ run_apt_bundle() {
     return 0
 }
 
+# Install Nerd Fonts on Linux
+run_fonts() {
+    if [[ "${DOTFILES_NO_FONTS:-}" == "1" ]]; then
+        info "Skipping Nerd Fonts installation (DOTFILES_NO_FONTS=1)"
+        return 0
+    fi
+
+    # On macOS, fonts are installed via Homebrew casks in run_brew_bundle
+    if [[ "$OS_TYPE" == "Darwin" ]]; then
+        return 0
+    fi
+
+    local font_script=""
+    if [[ -n "$SOURCE_DIR" && -f "$SOURCE_DIR/fonts.sh" ]]; then
+        font_script="$SOURCE_DIR/fonts.sh"
+    elif [[ -f "$HOME/fonts.sh" ]]; then
+        font_script="$HOME/fonts.sh"
+    fi
+
+    if [[ -z "$font_script" ]]; then
+        warn "fonts.sh not found; skipping Nerd Fonts installation"
+        return 0
+    fi
+
+    if ! confirm_optional "Install Nerd Fonts (powerline + ligatures)?" "y"; then
+        info "Skipping Nerd Fonts"
+        return 0
+    fi
+
+    info "Installing Nerd Fonts..."
+    local font_args=()
+    if [[ -n "${DOTFILES_DEFAULT_FONT:-}" ]]; then
+        font_args+=(--default "$DOTFILES_DEFAULT_FONT")
+    fi
+
+    if [[ -x "$font_script" ]]; then
+        "$font_script" "${font_args[@]}"
+    else
+        bash "$font_script" "${font_args[@]}"
+    fi
+
+    success "Nerd Fonts installed!"
+}
+
 # Preview Aptfile packages without installing
 print_apt_plan() {
     if [[ "${DOTFILES_NO_APT:-}" == "1" ]]; then
@@ -991,6 +1113,7 @@ main() {
         if [[ "${DOTFILES_APT_SETUP_REPOS:-}" == "1" ]]; then
             echo "  - Configure external apt repos (optional)" >&2
         fi
+        [[ "${DOTFILES_NO_FONTS:-}" != "1" ]] && echo "  - Install Nerd Fonts with powerline/ligatures (optional)" >&2
     fi
     [[ "${DOTFILES_MACOS:-}" == "1" ]] && echo "  - Apply macOS system defaults" >&2
     echo >&2
@@ -1041,6 +1164,8 @@ main() {
         fix_ssh_permissions
         run_brew_bundle
         run_apt_bundle
+        run_fonts
+        ensure_bash_shell
         apply_macos_defaults
         print_postinstall || exit 1
     else

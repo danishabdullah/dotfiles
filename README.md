@@ -23,8 +23,11 @@ Customize the installation with environment variables:
 | `DOTFILES_NO_APT=1` | Skip Aptfile package installation (Debian/Ubuntu) |
 | `DOTFILES_APT_DESKTOP=1` | Include Aptfile.desktop packages (Debian/Ubuntu) |
 | `DOTFILES_APT_SETUP_REPOS=1` | Configure external apt repos (Caddy + Azure CLI + PostgreSQL) |
+| `DOTFILES_NO_SHELL=1` | Skip changing default shell to latest bash |
 | `DOTFILES_MACOS=1` | Apply macOS system defaults (requires sudo) |
 | `DOTFILES_BRANCH=<name>` | Use a specific branch (default: master) |
+| `DOTFILES_NO_FONTS=1` | Skip Nerd Fonts installation (Linux only) |
+| `DOTFILES_DEFAULT_FONT=<name>` | Set default font (e.g., FiraCode, JetBrainsMono) |
 
 Example with options:
 
@@ -51,6 +54,9 @@ cd ~/.dotfiles
 | `--no-apt` | Skip Aptfile packages (Debian/Ubuntu) |
 | `--apt-desktop` | Include Aptfile.desktop packages (Debian/Ubuntu) |
 | `--apt-setup-repos` | Configure external apt repos (Caddy + Azure CLI + PostgreSQL) |
+| `--no-fonts` | Skip Nerd Fonts installation (Linux only) |
+| `--default-font <name>` | Set default font (e.g., FiraCode, JetBrainsMono) |
+| `--no-shell` | Skip changing default shell to latest bash |
 | `--macos` | Apply macOS system defaults |
 
 ## What's Included
@@ -95,7 +101,8 @@ cd ~/.dotfiles
 | `bootstrap.sh` | Syncs dotfiles to `$HOME` using rsync |
 | `brew.sh` | Installs Homebrew packages from Brewfile |
 | `apt.sh` | Installs Debian/Ubuntu packages from Aptfile.core (+ Aptfile.desktop if enabled) |
-| `apt-repos.sh` | Adds external apt repos (Caddy + Azure CLI + PostgreSQL) |
+| `apt-repos.sh` | Adds external apt repos (Caddy, Azure CLI, PostgreSQL; Ghostty with `--ghostty`) |
+| `fonts.sh` | Installs Nerd Fonts with powerline symbols and ligatures (Linux) |
 | `brew-drift-report.sh` | Audits Homebrew state vs Brewfile |
 | `.macos` | Applies opinionated macOS system defaults |
 
@@ -134,6 +141,23 @@ cd ~/.dotfiles
 - SSH: strict host key checking, no agent/X11 forwarding by default
 - GPG TTY configuration for signing
 - Restrictive umask (027)
+
+### Fonts
+
+Nerd Fonts with powerline symbols and programming ligatures are installed automatically:
+
+| Font | Description |
+|------|-------------|
+| JetBrains Mono | Default. Modern, designed for developers |
+| Fira Code | Popular, extensive ligatures |
+| Cascadia Code | Microsoft's terminal font |
+| Hack | Clean, highly readable |
+| Meslo | Classic terminal font |
+
+- **macOS**: Installed via Homebrew casks
+- **Linux**: Installed via `fonts.sh` to `~/.local/share/fonts/NerdFonts`
+
+Use `JetBrainsMono Nerd Font` (or your preferred font) in terminal and editor settings.
 
 ## Customization
 

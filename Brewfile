@@ -1,4 +1,5 @@
 tap "homebrew/bundle"
+tap "homebrew/cask-fonts"
 tap "homebrew/services"
 
 # -------------------------------------------------------------------
@@ -128,3 +129,12 @@ cask "figma"
 cask "bluos-controller"
 cask "epic-games"
 cask "steam"
+
+# -------------------------------------------------------------------
+# Fonts (Nerd Fonts with powerline + ligatures)
+# -------------------------------------------------------------------
+cask "font-jetbrains-mono-nerd-font"   # default
+cask "font-fira-code-nerd-font"
+cask "font-cascadia-code-nerd-font"
+cask "font-hack-nerd-font"
+cask "font-meslo-lg-nerd-font"

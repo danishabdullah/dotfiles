@@ -34,6 +34,24 @@ export LC_ALL="en_GB.UTF-8"
 # Interactive flag (used to gate heavy / cosmetic features)
 case $- in *i*) __BASH_IS_INTERACTIVE=1 ;; *) __BASH_IS_INTERACTIVE=0 ;; esac
 
+# Terminal environment (Ghostty)
+if [[ -z "${TMUX:-}" ]]; then
+  case "${TERM:-}" in
+    tmux*|screen*) ;;
+    *)
+      if [[ "${TERM_PROGRAM:-}" == "ghostty" || "${TERM:-}" == "ghostty" || "${TERM:-}" == "xterm-ghostty" ]]; then
+        if command -v infocmp >/dev/null 2>&1; then
+          if infocmp xterm-ghostty >/dev/null 2>&1; then
+            export TERM="xterm-ghostty"
+          elif infocmp ghostty >/dev/null 2>&1; then
+            export TERM="ghostty"
+          fi
+        fi
+      fi
+      ;;
+  esac
+fi
+
 
 # =============================================================================
 # 1) Modular dotfiles (optional shards; sourced only if present)
